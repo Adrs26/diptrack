@@ -30,6 +30,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        resValue("string", "maps_api_key", localProps.getProperty("MAPS_API_KEY"))
+        resValue("string", "base_url", localProps.getProperty("BASE_URL"))
     }
 
     buildTypes {
