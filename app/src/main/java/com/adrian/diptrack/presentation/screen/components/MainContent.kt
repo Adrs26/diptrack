@@ -2,10 +2,13 @@ package com.adrian.diptrack.presentation.screen.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.outlined.DepartureBoard
@@ -15,12 +18,16 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.adrian.diptrack.presentation.screen.MainState
 import com.google.maps.android.compose.CameraPositionState
@@ -39,9 +46,12 @@ fun MainContent(
     onBusStopMarkerClick: () -> Unit,
     onMyLocationButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
+    onRefreshGetBusStopLocations: () -> Unit,
     onStopTrackingClick: () -> Unit,
     onChangeDestinationClick: () -> Unit
 ) {
+    val snackBarHostState = remember { SnackbarHostState() }
+
     BottomSheetScaffold(
         sheetContent = {
             SheetContent(
@@ -55,6 +65,9 @@ fun MainContent(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         },
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.navigationBars),
         scaffoldState = rememberBottomSheetScaffoldState(
             bottomSheetState = rememberStandardBottomSheetState(
                 initialValue = if (isSheetVisible) SheetValue.PartiallyExpanded else SheetValue.Hidden,
@@ -64,7 +77,8 @@ fun MainContent(
         sheetPeekHeight = 152.dp,
         sheetContainerColor = MaterialTheme.colorScheme.surface,
         sheetShadowElevation = 8.dp,
-        sheetDragHandle = { SheetHandle(modifier = Modifier.padding(vertical = 16.dp)) }
+        sheetDragHandle = { SheetHandle(modifier = Modifier.padding(vertical = 16.dp)) },
+        snackbarHost = { SnackbarHost(snackBarHostState) }
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
@@ -72,9 +86,11 @@ fun MainContent(
             MapsContent(
                 cameraPositionState = cameraPositionState,
                 isLocationPermissionGranted = isLocationPermissionGranted,
-                busStops = mainState.busStops,
+                snackBarHostState = snackBarHostState,
+                busStopLocations = mainState.busStopLocations,
                 onMapLoaded = onMapLoaded,
-                onBusStopMarkerClick = onBusStopMarkerClick
+                onBusStopMarkerClick = onBusStopMarkerClick,
+                onRefreshGetBusStopLocations = onRefreshGetBusStopLocations
             )
 
             if (isMapLoaded) {
@@ -85,7 +101,7 @@ fun MainContent(
                         .padding(top = 48.dp, end = 16.dp)
                         .size(36.dp),
                     shape = MaterialTheme.shapes.small,
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color.White,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ) {
                     Icon(

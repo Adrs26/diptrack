@@ -11,6 +11,8 @@ sealed interface MainAction {
 
     data object AnimateToUserLocation : MainAction
 
+    data object RefreshGetBusStopLocations : MainAction
+
     data class StartTracking(
         val destinationName: String,
         val destinationLocation: LatLng

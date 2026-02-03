@@ -10,17 +10,21 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.adrian.diptrack.presentation.screen.components.MainContent
+import com.adrian.diptrack.presentation.screen.handler.CollectCurrentLocationEvent
 import com.adrian.diptrack.presentation.screen.handler.handlePermissions
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
+import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainScreen(
     state: MainState,
+    cameraUpdateEvent: Flow<CameraUpdate>,
     onAction: (MainAction) -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -43,6 +47,11 @@ fun MainScreen(
         }
     )
 
+    CollectCurrentLocationEvent(
+        cameraUpdateEvent = cameraUpdateEvent,
+        cameraPositionState = cameraPositionState
+    )
+
     MainContent(
         mainState = state,
         etaMinutes = 5,
@@ -53,8 +62,9 @@ fun MainScreen(
         isSheetVisible = isSheetVisible,
         onMapLoaded = { isMapLoaded = true },
         onBusStopMarkerClick = { },
-        onMyLocationButtonClick = {},
+        onMyLocationButtonClick = { onAction(MainAction.AnimateToUserLocation) },
         onMainButtonClick = { isSheetVisible = true },
+        onRefreshGetBusStopLocations = { onAction(MainAction.RefreshGetBusStopLocations) },
         onStopTrackingClick = {},
         onChangeDestinationClick = {}
     )

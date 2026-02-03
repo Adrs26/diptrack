@@ -2,12 +2,13 @@ package com.adrian.diptrack.presentation.screen
 
 import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.model.BusStop
+import com.adrian.diptrack.domain.common.BusStopLocationResult
+import com.adrian.diptrack.presentation.common.UiState
 
 data class MainState(
     val currentMode: ModeState = ModeState.Wait,
     val currentGeofence: GeofenceState = GeofenceState.Idle,
-    val busStops: List<BusStop> = emptyList(),
+    val busStopLocations: UiState<BusStopLocationResult> = UiState.Empty,
     val originName: String = "",
     val destinationName: String = ""
 )
