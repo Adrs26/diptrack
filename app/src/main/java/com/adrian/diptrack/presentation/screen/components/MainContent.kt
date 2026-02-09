@@ -46,6 +46,8 @@ fun MainContent(
     onBusStopMarkerClick: () -> Unit,
     onMyLocationButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
+    onProcessGetBusStopLocations: () -> Unit,
+    onSucceedGetBusStopLocations: () -> Unit,
     onRefreshGetBusStopLocations: () -> Unit,
     onStopTrackingClick: () -> Unit,
     onChangeDestinationClick: () -> Unit
@@ -90,6 +92,8 @@ fun MainContent(
                 busStopLocations = mainState.busStopLocations,
                 onMapLoaded = onMapLoaded,
                 onBusStopMarkerClick = onBusStopMarkerClick,
+                onProcessGetBusStopLocations = onProcessGetBusStopLocations,
+                onSucceedGetBusStopLocations = onSucceedGetBusStopLocations,
                 onRefreshGetBusStopLocations = onRefreshGetBusStopLocations
             )
 

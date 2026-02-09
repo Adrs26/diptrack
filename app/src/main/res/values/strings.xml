@@ -21,4 +21,8 @@
     <string name="seat_filled">Kursi terisi</string>
     <string name="seat_available">Kursi tersedia</string>
     <string name="processing_bus_stop_data">Memproses data halte…</string>
+    <string name="processing_to_destination_data">Memproses data menuju halte tujuan…</string>
+    <string name="no">Tidak</string>
+    <string name="yes">Ya</string>
+    <string name="close">Tutup</string>
 </resources>

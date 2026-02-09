@@ -1,7 +1,6 @@
 package com.adrian.diptrack.presentation.screen.components
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
@@ -9,12 +8,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import com.adrian.diptrack.R
 import com.adrian.diptrack.domain.common.BusStopLocationResult
 import com.adrian.diptrack.presentation.common.UiState
 import com.adrian.diptrack.presentation.screen.util.MarkerUtil
-import com.adrian.diptrack.presentation.util.toMessageError
+import com.adrian.diptrack.presentation.screen.util.toMessageError
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
@@ -32,6 +30,8 @@ fun MapsContent(
     busStopLocations: UiState<BusStopLocationResult>,
     onMapLoaded: () -> Unit,
     onBusStopMarkerClick: () -> Unit,
+    onProcessGetBusStopLocations: () -> Unit,
+    onSucceedGetBusStopLocations: () -> Unit,
     onRefreshGetBusStopLocations: () -> Unit
 ) {
     val context = LocalContext.current
@@ -57,13 +57,13 @@ fun MapsContent(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
-            isTrafficEnabled = true,
-            isMyLocationEnabled = isLocationPermissionGranted
+            isMyLocationEnabled = isLocationPermissionGranted,
+            isTrafficEnabled = true
         ),
         uiSettings = MapUiSettings(
             compassEnabled = false,
-            zoomControlsEnabled = false,
-            myLocationButtonEnabled = false
+            myLocationButtonEnabled = false,
+            zoomControlsEnabled = false
         ),
         onMapLoaded = onMapLoaded
     ) {
@@ -83,13 +83,9 @@ fun MapsContent(
                         }
                     )
                 }
+                onSucceedGetBusStopLocations()
             }
-            is UiState.Loading -> {
-                LoadingDialog(
-                    text = stringResource(R.string.processing_bus_stop_data),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            is UiState.Loading -> onProcessGetBusStopLocations()
             else -> Unit
         }
     }

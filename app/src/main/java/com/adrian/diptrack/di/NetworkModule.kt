@@ -1,6 +1,6 @@
 package com.adrian.diptrack.di
 
-import com.adrian.diptrack.presentation.receiver.NetworkStatusReceiver
+import com.adrian.diptrack.presentation.observer.NetworkStatusObserver
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
@@ -29,5 +29,5 @@ val networkModule = module {
             }
         }
     }
-    singleOf(::NetworkStatusReceiver)
+    singleOf(::NetworkStatusObserver)
 }

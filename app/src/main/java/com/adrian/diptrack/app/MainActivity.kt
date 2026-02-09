@@ -10,16 +10,18 @@ import com.adrian.diptrack.presentation.screen.MainAction
 import com.adrian.diptrack.presentation.screen.MainScreen
 import com.adrian.diptrack.presentation.screen.MainViewModel
 import com.adrian.diptrack.presentation.theme.DipTrackTheme
-import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val viewModel: MainViewModel by viewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
             DipTrackTheme {
-                val viewModel = koinViewModel<MainViewModel>()
                 val state by viewModel.mainState.collectAsStateWithLifecycle()
                 val cameraUpdateEvent = viewModel.cameraUpdateEvent
 
@@ -28,7 +30,12 @@ class MainActivity : ComponentActivity() {
                     cameraUpdateEvent = cameraUpdateEvent,
                 ) { action ->
                     when (action) {
-                        is MainAction.MapReady -> {}
+                        is MainAction.MapReady -> {
+                            viewModel.getCurrentGeofenceStatus(
+                                isGranted = action.isPermissionGranted,
+                                isMapLoaded = action.isMapLoaded
+                            )
+                        }
                         is MainAction.AnimateToUserLocation -> {
                             viewModel.animateToUserLocation()
                         }
@@ -37,10 +44,20 @@ class MainActivity : ComponentActivity() {
                         }
                         is MainAction.StartTracking -> {}
                         is MainAction.StopTracking -> {}
-                        is MainAction.Resume -> {}
+                        is MainAction.Resume -> {
+                            viewModel.getCurrentGeofenceStatus(
+                                isGranted = action.isPermissionGranted,
+                                isMapLoaded = action.isMapLoaded
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.animateToUserLocation()
     }
 }

@@ -7,9 +7,7 @@ import com.adrian.diptrack.domain.repository.MapsRepository
 class GetBusStopLocationsUseCase(
     private val repository: MapsRepository
 ) {
-    suspend operator fun invoke(
-        filter: ((Coordinate) -> Boolean)? = null
-    ): BusStopLocationResult {
+    suspend operator fun invoke(filter: ((Coordinate) -> Boolean)? = null): BusStopLocationResult {
         val filteredBusStop = if (filter != null) {
             val result = repository.getBusStopLocations()
 

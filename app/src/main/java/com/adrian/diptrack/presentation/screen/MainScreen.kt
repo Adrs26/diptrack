@@ -4,13 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.adrian.diptrack.presentation.screen.components.DialogSection
+import com.adrian.diptrack.presentation.screen.components.DialogState
 import com.adrian.diptrack.presentation.screen.components.MainContent
 import com.adrian.diptrack.presentation.screen.handler.CollectCurrentLocationEvent
+import com.adrian.diptrack.presentation.screen.handler.ObserveMainState
 import com.adrian.diptrack.presentation.screen.handler.handlePermissions
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -34,6 +38,7 @@ fun MainScreen(
 
     var isMapLoaded by rememberSaveable { mutableStateOf(false) }
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
+    var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
 
     val permissionState = handlePermissions(
         isMapLoaded = isMapLoaded,
@@ -45,6 +50,12 @@ fun MainScreen(
                 )
             )
         }
+    )
+
+    ObserveMainState(
+        currentMode = state.currentMode,
+        currentGeofence = state.currentGeofence,
+        onShowDialog = { dialogState = it }
     )
 
     CollectCurrentLocationEvent(
@@ -61,12 +72,22 @@ fun MainScreen(
         isMapLoaded = isMapLoaded,
         isSheetVisible = isSheetVisible,
         onMapLoaded = { isMapLoaded = true },
-        onBusStopMarkerClick = { },
+        onBusStopMarkerClick = { dialogState = DialogState.BusStopInformation },
         onMyLocationButtonClick = { onAction(MainAction.AnimateToUserLocation) },
         onMainButtonClick = { isSheetVisible = true },
+        onProcessGetBusStopLocations = { dialogState = DialogState.BusStopLoading },
+        onSucceedGetBusStopLocations = { dialogState = DialogState.None },
         onRefreshGetBusStopLocations = { onAction(MainAction.RefreshGetBusStopLocations) },
         onStopTrackingClick = {},
         onChangeDestinationClick = {}
+    )
+
+    DialogSection(
+        dialogState = dialogState,
+        mainState = state,
+        isMapLoaded = isMapLoaded,
+        onShowBusStopList = {  },
+        onDismissRequest = { dialogState = DialogState.None }
     )
 
     DisposableEffect(lifecycleOwner) {

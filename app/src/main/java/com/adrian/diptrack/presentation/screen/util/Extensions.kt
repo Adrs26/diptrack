@@ -1,4 +1,4 @@
-package com.adrian.diptrack.presentation.util
+package com.adrian.diptrack.presentation.screen.util
 
 import com.adrian.diptrack.R
 import com.adrian.diptrack.domain.common.NetworkError

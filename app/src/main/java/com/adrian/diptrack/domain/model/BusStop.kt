@@ -1,7 +1,8 @@
 package com.adrian.diptrack.domain.model
 
-data class BusStopLocation(
+data class BusStop(
     val id: Int,
+    val name: String,
     val latitude: Double,
     val longitude: Double
 )

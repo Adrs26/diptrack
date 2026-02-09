@@ -1,4 +1,4 @@
-package com.adrian.diptrack.presentation.receiver
+package com.adrian.diptrack.presentation.observer
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-class NetworkStatusReceiver(context: Context) {
+class NetworkStatusObserver(context: Context) {
 
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

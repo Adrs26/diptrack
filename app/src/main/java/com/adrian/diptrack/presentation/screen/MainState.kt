@@ -6,7 +6,7 @@ import com.adrian.diptrack.domain.common.BusStopLocationResult
 import com.adrian.diptrack.presentation.common.UiState
 
 data class MainState(
-    val currentMode: ModeState = ModeState.Wait,
+    val currentMode: ModeState = ModeState.Idle,
     val currentGeofence: GeofenceState = GeofenceState.Idle,
     val busStopLocations: UiState<BusStopLocationResult> = UiState.Empty,
     val originName: String = "",
