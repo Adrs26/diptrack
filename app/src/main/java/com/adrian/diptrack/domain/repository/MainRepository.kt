@@ -1,13 +1,13 @@
 package com.adrian.diptrack.domain.repository
 
-import com.adrian.diptrack.domain.common.BusStopLocationResult
+import com.adrian.diptrack.domain.model.BusStopResult
 import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.model.Coordinate
 import kotlinx.coroutines.flow.Flow
 
-interface MapsRepository {
+interface MainRepository {
 
-    suspend fun getBusStopLocations(): BusStopLocationResult
+    suspend fun getBusStopLocations(): BusStopResult
 
     suspend fun getGeofenceStatus(): Flow<GeofenceState>
 

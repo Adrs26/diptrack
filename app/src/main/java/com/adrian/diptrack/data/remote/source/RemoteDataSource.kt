@@ -8,18 +8,27 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
 import kotlinx.serialization.SerializationException
 
 class RemoteDataSource(private val client: HttpClient) {
 
     suspend fun getBusStops(): Result<List<BusStopDto>, NetworkError> {
+        return safeApiCall {
+            client.get("https://backend-bustracking.onrender.com/api/halte")
+        }
+    }
+
+    private suspend inline fun <reified T> safeApiCall(
+        crossinline apiCall: suspend () -> HttpResponse
+    ): Result<T, NetworkErrorType> {
         return try {
-            val response = client.get("https://backend-bustracking.onrender.com/api/halte")
+            val response = apiCall()
 
             when (response.status.value) {
                 in 200..299 -> {
-                    val response = response.body<List<BusStopDto>>()
-                    Result.Success(response)
+                    val body = response.body<T>()
+                    Result.Success(body)
                 }
                 401 -> Result.Error(NetworkErrorType.UNAUTHORIZED)
                 408 -> Result.Error(NetworkErrorType.REQUEST_TIMEOUT)

@@ -3,7 +3,7 @@ package com.adrian.diptrack.presentation.screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adrian.diptrack.domain.manager.MapsManager
-import com.adrian.diptrack.domain.repository.MapsRepository
+import com.adrian.diptrack.domain.repository.MainRepository
 import com.adrian.diptrack.domain.usecase.GetBusStopLocationsUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentGeofenceStatusUseCase
 import com.adrian.diptrack.presentation.common.UiState
@@ -12,16 +12,18 @@ import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 class MainViewModel(
     private val manager: MapsManager,
-    private val repository: MapsRepository,
+    private val repository: MainRepository,
     private val getBusStopLocationsUseCase: GetBusStopLocationsUseCase,
     private val getCurrentGeofenceStatusUseCase: GetCurrentGeofenceStatusUseCase,
     private val networkStatusObserver: NetworkStatusObserver
@@ -40,13 +42,13 @@ class MainViewModel(
         observeNetwork()
         observePreferences()
         animateToUserLocation()
-        getBusStopLocations()
+        getBusStops()
     }
 
     private fun observeNetwork() {
         viewModelScope.launch {
             networkStatusObserver.isConnected.collect {
-                getBusStopLocations()
+                getBusStops()
             }
         }
     }
@@ -92,17 +94,17 @@ class MainViewModel(
         }
     }
 
-    fun getBusStopLocations() {
+    fun getBusStops() {
         _mainState.update {
             it.copy(
-                busStopLocations = UiState.Loading
+                busStopResult = UiState.Loading
             )
         }
 
         viewModelScope.launch {
             _mainState.update {
                 it.copy(
-                    busStopLocations = UiState.Success(getBusStopLocationsUseCase())
+                    busStopResult = UiState.Success(getBusStopLocationsUseCase())
                 )
             }
         }

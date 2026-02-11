@@ -4,15 +4,19 @@ import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.repository.MapsRepository
+import com.adrian.diptrack.domain.repository.MainRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class GetCurrentGeofenceStatusUseCase(
     private val manager: MapsManager,
-    private val repository: MapsRepository
+    private val repository: MainRepository
 ) {
     suspend operator fun invoke() {
+        repository.setGeofenceStatus(GeofenceState.Idle)
+
+        if (repository.getBusStopLocations().error != null) return
+
         val remoteBusStops = repository.getBusStopLocations().data
         val geofenceResult = getCurrentGeofenceStatus(remoteBusStops)
 

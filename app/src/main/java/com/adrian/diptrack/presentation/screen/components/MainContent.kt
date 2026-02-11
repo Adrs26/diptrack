@@ -46,9 +46,9 @@ fun MainContent(
     onBusStopMarkerClick: () -> Unit,
     onMyLocationButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
-    onProcessGetBusStopLocations: () -> Unit,
-    onSucceedGetBusStopLocations: () -> Unit,
-    onRefreshGetBusStopLocations: () -> Unit,
+    onProcessGetBusStops: () -> Unit,
+    onSucceedGetBusStops: () -> Unit,
+    onRefreshGetBusStops: () -> Unit,
     onStopTrackingClick: () -> Unit,
     onChangeDestinationClick: () -> Unit
 ) {
@@ -89,12 +89,12 @@ fun MainContent(
                 cameraPositionState = cameraPositionState,
                 isLocationPermissionGranted = isLocationPermissionGranted,
                 snackBarHostState = snackBarHostState,
-                busStopLocations = mainState.busStopLocations,
+                busStopResult = mainState.busStopResult,
                 onMapLoaded = onMapLoaded,
                 onBusStopMarkerClick = onBusStopMarkerClick,
-                onProcessGetBusStopLocations = onProcessGetBusStopLocations,
-                onSucceedGetBusStopLocations = onSucceedGetBusStopLocations,
-                onRefreshGetBusStopLocations = onRefreshGetBusStopLocations
+                onProcessGetBusStops = onProcessGetBusStops,
+                onSucceedGetBusStops = onSucceedGetBusStops,
+                onRefreshGetBusStops = onRefreshGetBusStops
             )
 
             if (isMapLoaded) {

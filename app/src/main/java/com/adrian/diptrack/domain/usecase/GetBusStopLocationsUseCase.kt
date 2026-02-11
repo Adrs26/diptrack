@@ -1,17 +1,17 @@
 package com.adrian.diptrack.domain.usecase
 
-import com.adrian.diptrack.domain.common.BusStopLocationResult
+import com.adrian.diptrack.domain.model.BusStopResult
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.repository.MapsRepository
+import com.adrian.diptrack.domain.repository.MainRepository
 
 class GetBusStopLocationsUseCase(
-    private val repository: MapsRepository
+    private val repository: MainRepository
 ) {
-    suspend operator fun invoke(filter: ((Coordinate) -> Boolean)? = null): BusStopLocationResult {
+    suspend operator fun invoke(filter: ((Coordinate) -> Boolean)? = null): BusStopResult {
         val filteredBusStop = if (filter != null) {
             val result = repository.getBusStopLocations()
 
-            BusStopLocationResult(
+            BusStopResult(
                 data = result.data.filter {
                     filter(
                         Coordinate(

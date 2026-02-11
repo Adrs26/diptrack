@@ -44,7 +44,7 @@ fun MainScreen(
         isMapLoaded = isMapLoaded,
         onMapReady = { isPermissionGranted, isMapLoaded ->
             onAction(
-                MainAction.MapReady(
+                MainAction.GetCurrentGeofenceStatus(
                     isPermissionGranted = isPermissionGranted,
                     isMapLoaded = isMapLoaded
                 )
@@ -55,7 +55,16 @@ fun MainScreen(
     ObserveMainState(
         currentMode = state.currentMode,
         currentGeofence = state.currentGeofence,
-        onShowDialog = { dialogState = it }
+        busStopResult = state.busStopResult,
+        onShowDialog = { dialogState = it },
+        onGetCurrentGeofenceStatus = {
+            onAction(
+                MainAction.GetCurrentGeofenceStatus(
+                    isPermissionGranted = permissionState.status.isGranted,
+                    isMapLoaded = isMapLoaded
+                )
+            )
+        }
     )
 
     CollectCurrentLocationEvent(
@@ -75,9 +84,9 @@ fun MainScreen(
         onBusStopMarkerClick = { dialogState = DialogState.BusStopInformation },
         onMyLocationButtonClick = { onAction(MainAction.AnimateToUserLocation) },
         onMainButtonClick = { isSheetVisible = true },
-        onProcessGetBusStopLocations = { dialogState = DialogState.BusStopLoading },
-        onSucceedGetBusStopLocations = { dialogState = DialogState.None },
-        onRefreshGetBusStopLocations = { onAction(MainAction.RefreshGetBusStopLocations) },
+        onProcessGetBusStops = { dialogState = DialogState.BusStopLoading },
+        onSucceedGetBusStops = { dialogState = DialogState.None },
+        onRefreshGetBusStops = { onAction(MainAction.RefreshGetBusStops) },
         onStopTrackingClick = {},
         onChangeDestinationClick = {}
     )
@@ -94,7 +103,7 @@ fun MainScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 onAction(
-                    MainAction.Resume(
+                    MainAction.GetCurrentGeofenceStatus(
                         isPermissionGranted = permissionState.status.isGranted,
                         isMapLoaded = isMapLoaded
                     )

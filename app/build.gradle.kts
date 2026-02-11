@@ -9,7 +9,7 @@ plugins {
 }
 
 val localProps = Properties()
-val localPropertiesFile = File(rootProject.rootDir,"secret.properties")
+val localPropertiesFile = File(rootProject.rootDir, "secret.properties")
 if (localPropertiesFile.exists() && localPropertiesFile.isFile) {
     localPropertiesFile.inputStream().use {
         localProps.load(it)
@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.maps.utils.ktx)
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -9,7 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.adrian.diptrack.R
-import com.adrian.diptrack.domain.common.BusStopLocationResult
+import com.adrian.diptrack.domain.model.BusStopResult
 import com.adrian.diptrack.presentation.common.UiState
 import com.adrian.diptrack.presentation.screen.util.MarkerUtil
 import com.adrian.diptrack.presentation.screen.util.toMessageError
@@ -27,29 +27,31 @@ fun MapsContent(
     cameraPositionState: CameraPositionState,
     isLocationPermissionGranted: Boolean,
     snackBarHostState: SnackbarHostState,
-    busStopLocations: UiState<BusStopLocationResult>,
+    busStopResult: UiState<BusStopResult>,
     onMapLoaded: () -> Unit,
     onBusStopMarkerClick: () -> Unit,
-    onProcessGetBusStopLocations: () -> Unit,
-    onSucceedGetBusStopLocations: () -> Unit,
-    onRefreshGetBusStopLocations: () -> Unit
+    onProcessGetBusStops: () -> Unit,
+    onSucceedGetBusStops: () -> Unit,
+    onRefreshGetBusStops: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(busStopLocations) {
-        if (busStopLocations is UiState.Success && busStopLocations.data.error != null) {
+    LaunchedEffect(busStopResult) {
+        if (busStopResult is UiState.Success && busStopResult.data.error != null) {
             scope.launch {
                 val result = snackBarHostState.showSnackbar(
-                    message = busStopLocations.data.error.toMessageError().asString(context),
+                    message = busStopResult.data.error.toMessageError().asString(context),
                     actionLabel = "Refresh",
                     withDismissAction = true
                 )
                 when (result) {
-                    SnackbarResult.ActionPerformed -> onRefreshGetBusStopLocations()
+                    SnackbarResult.ActionPerformed -> onRefreshGetBusStops()
                     SnackbarResult.Dismissed -> Unit
                 }
             }
+        } else {
+            snackBarHostState.currentSnackbarData?.dismiss()
         }
     }
 
@@ -67,9 +69,9 @@ fun MapsContent(
         ),
         onMapLoaded = onMapLoaded
     ) {
-        when (busStopLocations) {
+        when (busStopResult) {
             is UiState.Success -> {
-                busStopLocations.data.data.forEach { busStop ->
+                busStopResult.data.data.forEach { busStop ->
                     val markerState = rememberUpdatedMarkerState(
                         LatLng(busStop.latitude, busStop.longitude)
                     )
@@ -83,9 +85,9 @@ fun MapsContent(
                         }
                     )
                 }
-                onSucceedGetBusStopLocations()
+                onSucceedGetBusStops()
             }
-            is UiState.Loading -> onProcessGetBusStopLocations()
+            is UiState.Loading -> onProcessGetBusStops()
             else -> Unit
         }
     }

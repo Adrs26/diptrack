@@ -30,26 +30,24 @@ class MainActivity : ComponentActivity() {
                     cameraUpdateEvent = cameraUpdateEvent,
                 ) { action ->
                     when (action) {
-                        is MainAction.MapReady -> {
-                            viewModel.getCurrentGeofenceStatus(
-                                isGranted = action.isPermissionGranted,
-                                isMapLoaded = action.isMapLoaded
-                            )
-                        }
                         is MainAction.AnimateToUserLocation -> {
                             viewModel.animateToUserLocation()
                         }
-                        is MainAction.RefreshGetBusStopLocations -> {
-                            viewModel.getBusStopLocations()
-                        }
-                        is MainAction.StartTracking -> {}
-                        is MainAction.StopTracking -> {}
-                        is MainAction.Resume -> {
+                        is MainAction.GetCurrentGeofenceStatus -> {
                             viewModel.getCurrentGeofenceStatus(
                                 isGranted = action.isPermissionGranted,
                                 isMapLoaded = action.isMapLoaded
                             )
                         }
+                        is MainAction.RefreshGetBusStops -> {
+                            viewModel.getBusStops()
+                            viewModel.getCurrentGeofenceStatus(
+                                isGranted = true,
+                                isMapLoaded = true
+                            )
+                        }
+                        is MainAction.StartTracking -> {}
+                        is MainAction.StopTracking -> {}
                     }
                 }
             }

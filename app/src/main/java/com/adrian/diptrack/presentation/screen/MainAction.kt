@@ -4,14 +4,14 @@ import com.google.android.gms.maps.model.LatLng
 
 sealed interface MainAction {
 
-    data class MapReady(
+    data object AnimateToUserLocation : MainAction
+
+    data class GetCurrentGeofenceStatus(
         val isPermissionGranted: Boolean,
         val isMapLoaded: Boolean
     ) : MainAction
 
-    data object AnimateToUserLocation : MainAction
-
-    data object RefreshGetBusStopLocations : MainAction
+    data object RefreshGetBusStops : MainAction
 
     data class StartTracking(
         val destinationName: String,
@@ -19,9 +19,4 @@ sealed interface MainAction {
     ) : MainAction
 
     data object StopTracking : MainAction
-
-    data class Resume(
-        val isPermissionGranted: Boolean,
-        val isMapLoaded: Boolean
-    ) : MainAction
 }

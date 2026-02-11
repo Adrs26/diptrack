@@ -2,50 +2,41 @@ package com.adrian.diptrack.data.repository
 
 import com.adrian.diptrack.data.local.source.LocalDataSource
 import com.adrian.diptrack.data.mapper.toBusStopDomain
+import com.adrian.diptrack.data.mapper.toBusStopEntity
+import com.adrian.diptrack.data.remote.dto.BusStopDto
 import com.adrian.diptrack.data.remote.source.RemoteDataSource
-import com.adrian.diptrack.domain.common.BusStopLocationResult
 import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.common.Result
-import com.adrian.diptrack.domain.model.BusStop
+import com.adrian.diptrack.domain.model.BusStopResult
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.repository.MapsRepository
+import com.adrian.diptrack.domain.repository.MainRepository
 import kotlinx.coroutines.flow.Flow
 
-class MapsRepositoryImpl(
+class MainRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val remoteDataSource: RemoteDataSource
-) : MapsRepository {
+) : MainRepository {
 
-    override suspend fun getBusStopLocations(): BusStopLocationResult {
+    override suspend fun getBusStopLocations(): BusStopResult {
         return when (val result = remoteDataSource.getBusStops()) {
             is Result.Success -> {
-                BusStopLocationResult(
-                    data = result.data.map { it.toBusStopDomain() } + listOf(BusStop(
-                        id = 99,
-                        name = "Halte Kalideres",
-                        latitude = -6.1537810,
-                        longitude = 106.7084305
-                    )),
+                val busStops = result.data + listOf(BusStopDto(
+                    id = 99,
+                    name = "Halte Kalideres",
+                    latitude = -6.1537810,
+                    longitude = 106.7084305
+                ))
+
+                localDataSource.updateBusStops(busStops.map { it.toBusStopEntity() })
+                BusStopResult(
+                    data = busStops.map { it.toBusStopDomain() },
                     isOffline = false,
                     error = null
                 )
             }
             is Result.Error -> {
-                BusStopLocationResult(
-                    data = listOf(
-                        BusStop(
-                            id = 1,
-                            name = "Halte 1",
-                            latitude = -7.05538964,
-                            longitude = 110.43927992
-                        ),
-                        BusStop(
-                            id = 2,
-                            name = "Halte 2",
-                            latitude = -7.05352606,
-                            longitude = 110.43889375
-                        )
-                    ),
+                BusStopResult(
+                    data = localDataSource.getBusStops().map { it.toBusStopDomain() },
                     isOffline = true,
                     error = result.error
                 )
