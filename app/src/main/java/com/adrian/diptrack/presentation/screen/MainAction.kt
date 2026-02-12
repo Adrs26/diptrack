@@ -1,6 +1,6 @@
 package com.adrian.diptrack.presentation.screen
 
-import com.google.android.gms.maps.model.LatLng
+import com.adrian.diptrack.domain.model.Coordinate
 
 sealed interface MainAction {
 
@@ -13,9 +13,11 @@ sealed interface MainAction {
 
     data object RefreshGetBusStops : MainAction
 
+    data object MarkBusStopNearbyDialogAsShown : MainAction
+
     data class StartTracking(
         val destinationName: String,
-        val destinationLocation: LatLng
+        val destinationLocation: Coordinate
     ) : MainAction
 
     data object StopTracking : MainAction

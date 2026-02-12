@@ -9,6 +9,7 @@ data class MainState(
     val currentMode: ModeState = ModeState.Idle,
     val currentGeofence: GeofenceState = GeofenceState.Idle,
     val busStopResult: UiState<BusStopResult> = UiState.Empty,
+    val hasShownBusStopNearbyDialog: Boolean = false,
     val originName: String = "",
     val destinationName: String = ""
 )

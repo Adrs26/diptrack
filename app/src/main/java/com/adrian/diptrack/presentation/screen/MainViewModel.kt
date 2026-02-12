@@ -109,4 +109,12 @@ class MainViewModel(
             }
         }
     }
+
+    fun markBusStopNearbyDialogAsShown() {
+        _mainState.update {
+            it.copy(
+                hasShownBusStopNearbyDialog = true
+            )
+        }
+    }
 }

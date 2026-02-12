@@ -1,15 +1,21 @@
 package com.adrian.diptrack.presentation.screen
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.Modifier
+import com.adrian.diptrack.presentation.common.UiState
+import com.adrian.diptrack.presentation.screen.components.BusStopPickersContent
 import com.adrian.diptrack.presentation.screen.components.DialogSection
 import com.adrian.diptrack.presentation.screen.components.DialogState
 import com.adrian.diptrack.presentation.screen.components.MainContent
@@ -31,13 +37,13 @@ fun MainScreen(
     cameraUpdateEvent: Flow<CameraUpdate>,
     onAction: (MainAction) -> Unit
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 16f)
     }
 
     var isMapLoaded by rememberSaveable { mutableStateOf(false) }
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
+    var isBusStopPickersVisible by rememberSaveable { mutableStateOf(false) }
     var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
 
     val permissionState = handlePermissions(
@@ -56,6 +62,7 @@ fun MainScreen(
         currentMode = state.currentMode,
         currentGeofence = state.currentGeofence,
         busStopResult = state.busStopResult,
+        hasShownBusStopNearbyDialog = state.hasShownBusStopNearbyDialog,
         onShowDialog = { dialogState = it },
         onGetCurrentGeofenceStatus = {
             onAction(
@@ -83,7 +90,7 @@ fun MainScreen(
         onMapLoaded = { isMapLoaded = true },
         onBusStopMarkerClick = { dialogState = DialogState.BusStopInformation },
         onMyLocationButtonClick = { onAction(MainAction.AnimateToUserLocation) },
-        onMainButtonClick = { isSheetVisible = true },
+        onMainButtonClick = { isBusStopPickersVisible = true },
         onProcessGetBusStops = { dialogState = DialogState.BusStopLoading },
         onSucceedGetBusStops = { dialogState = DialogState.None },
         onRefreshGetBusStops = { onAction(MainAction.RefreshGetBusStops) },
@@ -91,28 +98,37 @@ fun MainScreen(
         onChangeDestinationClick = {}
     )
 
+    AnimatedVisibility(
+        visible = isBusStopPickersVisible,
+        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        BusStopPickersContent(
+            busStops = if (state.busStopResult is UiState.Success) {
+                state.busStopResult.data.data
+            } else {
+                emptyList()
+            },
+            onNavigateBack = { isBusStopPickersVisible = false },
+            onBusStopSelect = { destinationName, destinationLocation ->
+                onAction(MainAction.StartTracking(destinationName, destinationLocation))
+            }
+        )
+    }
+
     DialogSection(
         dialogState = dialogState,
         mainState = state,
         isMapLoaded = isMapLoaded,
-        onShowBusStopList = {  },
-        onDismissRequest = { dialogState = DialogState.None }
+        onShowBusStopList = { isBusStopPickersVisible = true },
+        onDismissRequest = {
+            dialogState = DialogState.None
+            onAction(MainAction.MarkBusStopNearbyDialogAsShown)
+        }
     )
 
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                onAction(
-                    MainAction.GetCurrentGeofenceStatus(
-                        isPermissionGranted = permissionState.status.isGranted,
-                        isMapLoaded = isMapLoaded
-                    )
-                )
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+    BackHandler(isBusStopPickersVisible) {
+        isBusStopPickersVisible = false
     }
 }

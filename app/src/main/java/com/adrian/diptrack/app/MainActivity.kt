@@ -46,6 +46,9 @@ class MainActivity : ComponentActivity() {
                                 isMapLoaded = true
                             )
                         }
+                        is MainAction.MarkBusStopNearbyDialogAsShown -> {
+                            viewModel.markBusStopNearbyDialogAsShown()
+                        }
                         is MainAction.StartTracking -> {}
                         is MainAction.StopTracking -> {}
                     }

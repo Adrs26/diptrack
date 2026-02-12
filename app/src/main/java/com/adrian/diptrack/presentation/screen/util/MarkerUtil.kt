@@ -28,8 +28,8 @@ object MarkerUtil {
             isAntiAlias = true
         }
 
-        val redBackground = Paint().apply {
-            color = "#EF5350".toColorInt()
+        val brownBackground = Paint().apply {
+            color = "#795548".toColorInt()
             isAntiAlias = true
         }
 
@@ -50,7 +50,7 @@ object MarkerUtil {
             outerCircleRect,
             outerCircleRadius,
             outerCircleRadius,
-            redBackground
+            brownBackground
         )
         canvas.drawRoundRect(
             innerCircleRect,
@@ -66,13 +66,13 @@ object MarkerUtil {
             pointerCenterX,
             pointerCenterY,
             pointerRadius,
-            redBackground
+            brownBackground
         )
 
         val iconDrawable = ContextCompat.getDrawable(context, iconRes)
 
         iconDrawable?.let { icon ->
-            icon.setTint("#EF5350".toColorInt())
+            icon.setTint("#795548".toColorInt())
 
             val iconSize = 48
             val centerX = totalSize / 2

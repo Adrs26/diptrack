@@ -8,6 +8,7 @@ import androidx.core.app.ActivityCompat
 import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.Coordinate
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 
@@ -26,12 +27,13 @@ class MapsManagerImpl(
             return
         }
 
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            if (location != null) {
-                onResult(Coordinate(location.latitude, location.longitude))
-            } else {
-                onResult(null)
-            }
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    onResult(Coordinate(location.latitude, location.longitude))
+                } else {
+                    onResult(null)
+                }
         }
     }
 

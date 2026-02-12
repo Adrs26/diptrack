@@ -82,8 +82,7 @@ fun BusStopInformationDialog(
                 }
                 HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.tertiary
+                    color = MaterialTheme.colorScheme.outline
                 )
                 Column(
                     modifier = Modifier.fillMaxWidth(),

@@ -65,10 +65,6 @@ class GetCurrentGeofenceStatusUseCase(
             startCoordinate = userCoordinate,
             endCoordinate = Coordinate(busStop.latitude, busStop.longitude)
         )
-        return distance <= GEOFENCE_RADIUS_METER
-    }
-
-    companion object {
-        private const val GEOFENCE_RADIUS_METER = 100f
+        return distance <= 100f
     }
 }
