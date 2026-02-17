@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.outlined.DepartureBoard
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,9 +43,11 @@ fun MainContent(
     isLocationPermissionGranted: Boolean,
     isMapLoaded: Boolean,
     isSheetVisible: Boolean,
+    isPolylinesShown: Boolean,
     onMapLoaded: () -> Unit,
     onBusStopMarkerClick: () -> Unit,
     onMyLocationButtonClick: () -> Unit,
+    onPolylinesButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
     onProcessGetBusStops: () -> Unit,
     onSucceedGetBusStops: () -> Unit,
@@ -86,10 +89,11 @@ fun MainContent(
             modifier = Modifier.fillMaxSize()
         ) {
             MapsContent(
+                initialDataResult = mainState.initialDataResult,
                 cameraPositionState = cameraPositionState,
-                isLocationPermissionGranted = isLocationPermissionGranted,
                 snackBarHostState = snackBarHostState,
-                busStopResult = mainState.busStopResult,
+                isLocationPermissionGranted = isLocationPermissionGranted,
+                isPolylinesShown = isPolylinesShown,
                 onMapLoaded = onMapLoaded,
                 onBusStopMarkerClick = onBusStopMarkerClick,
                 onProcessGetBusStops = onProcessGetBusStops,
@@ -103,13 +107,31 @@ fun MainContent(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(top = 48.dp, end = 16.dp)
-                        .size(36.dp),
+                        .size(40.dp),
                     shape = MaterialTheme.shapes.small,
                     containerColor = Color.White,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ) {
                     Icon(
                         imageVector = Icons.Default.MyLocation,
+                        contentDescription = null
+                    )
+                }
+
+                FloatingActionButton(
+                    onClick = onPolylinesButtonClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 48.dp, end = 68.dp)
+                        .size(40.dp),
+                    shape = MaterialTheme.shapes.small,
+                    containerColor = if (isPolylinesShown) MaterialTheme.colorScheme.primary else
+                        Color.White,
+                    contentColor = if (isPolylinesShown) MaterialTheme.colorScheme.onPrimary else
+                        MaterialTheme.colorScheme.onSurface
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Route,
                         contentDescription = null
                     )
                 }

@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.model.BusStopResult
+import com.adrian.diptrack.domain.model.InitialDataResult
 import com.adrian.diptrack.presentation.common.UiState
 import com.adrian.diptrack.presentation.screen.components.DialogState
 
@@ -12,15 +12,15 @@ import com.adrian.diptrack.presentation.screen.components.DialogState
 fun ObserveMainState(
     currentMode: ModeState,
     currentGeofence: GeofenceState,
-    busStopResult: UiState<BusStopResult>,
+    initialDataResult: UiState<InitialDataResult>,
     hasShownBusStopNearbyDialog: Boolean,
     onShowDialog: (DialogState) -> Unit,
     onGetCurrentGeofenceStatus: () -> Unit
 ) {
-    LaunchedEffect(currentGeofence, busStopResult) {
-        when (busStopResult) {
+    LaunchedEffect(currentGeofence, initialDataResult) {
+        when (initialDataResult) {
             is UiState.Success -> {
-                val hasNoError = busStopResult.data.error == null
+                val hasNoError = initialDataResult.data.error == null
                 val isIdleMode = currentMode == ModeState.Idle
                 val isEnteringGeofence = currentGeofence == GeofenceState.Enter
                 val showBusStopNearbyDialog = hasNoError && isIdleMode && isEnteringGeofence

@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BusDto(
+data class BusResponseDto(
     @SerialName("id_bus")
     val id: Int,
 
@@ -13,6 +13,12 @@ data class BusDto(
 
     @SerialName("kode_bus")
     val busCode: String,
+
+    @SerialName("jenis_bus")
+    val busType: String,
+
+    @SerialName("status")
+    val status: String,
 
     @SerialName("kapasitas")
     val capacity: Int,

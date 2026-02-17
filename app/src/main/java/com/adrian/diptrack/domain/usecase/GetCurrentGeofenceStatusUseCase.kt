@@ -15,9 +15,9 @@ class GetCurrentGeofenceStatusUseCase(
     suspend operator fun invoke() {
         repository.setGeofenceStatus(GeofenceState.Idle)
 
-        if (repository.getBusStopLocations().error != null) return
+        if (repository.getInitialData().error != null) return
 
-        val remoteBusStops = repository.getBusStopLocations().data
+        val remoteBusStops = repository.getInitialData().busStops
         val geofenceResult = getCurrentGeofenceStatus(remoteBusStops)
 
         if (geofenceResult != null) {

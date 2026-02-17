@@ -43,6 +43,7 @@ fun MainScreen(
 
     var isMapLoaded by rememberSaveable { mutableStateOf(false) }
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
+    var isPolylinesShown by rememberSaveable { mutableStateOf(false) }
     var isBusStopPickersVisible by rememberSaveable { mutableStateOf(false) }
     var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
 
@@ -61,7 +62,7 @@ fun MainScreen(
     ObserveMainState(
         currentMode = state.currentMode,
         currentGeofence = state.currentGeofence,
-        busStopResult = state.busStopResult,
+        initialDataResult = state.initialDataResult,
         hasShownBusStopNearbyDialog = state.hasShownBusStopNearbyDialog,
         onShowDialog = { dialogState = it },
         onGetCurrentGeofenceStatus = {
@@ -87,13 +88,15 @@ fun MainScreen(
         isLocationPermissionGranted = permissionState.status.isGranted,
         isMapLoaded = isMapLoaded,
         isSheetVisible = isSheetVisible,
+        isPolylinesShown = isPolylinesShown,
         onMapLoaded = { isMapLoaded = true },
         onBusStopMarkerClick = { dialogState = DialogState.BusStopInformation },
         onMyLocationButtonClick = { onAction(MainAction.AnimateToUserLocation) },
+        onPolylinesButtonClick = { isPolylinesShown = !isPolylinesShown },
         onMainButtonClick = { isBusStopPickersVisible = true },
         onProcessGetBusStops = { dialogState = DialogState.BusStopLoading },
         onSucceedGetBusStops = { dialogState = DialogState.None },
-        onRefreshGetBusStops = { onAction(MainAction.RefreshGetBusStops) },
+        onRefreshGetBusStops = { onAction(MainAction.RefreshData) },
         onStopTrackingClick = {},
         onChangeDestinationClick = {}
     )
@@ -105,8 +108,8 @@ fun MainScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         BusStopPickersContent(
-            busStops = if (state.busStopResult is UiState.Success) {
-                state.busStopResult.data.data
+            busStops = if (state.initialDataResult is UiState.Success) {
+                state.initialDataResult.data.busStops
             } else {
                 emptyList()
             },

@@ -39,8 +39,8 @@ class MainActivity : ComponentActivity() {
                                 isMapLoaded = action.isMapLoaded
                             )
                         }
-                        is MainAction.RefreshGetBusStops -> {
-                            viewModel.getBusStops()
+                        is MainAction.RefreshData -> {
+                            viewModel.getInitialData()
                             viewModel.getCurrentGeofenceStatus(
                                 isGranted = true,
                                 isMapLoaded = true

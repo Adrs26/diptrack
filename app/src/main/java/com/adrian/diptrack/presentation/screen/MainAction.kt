@@ -11,7 +11,7 @@ sealed interface MainAction {
         val isMapLoaded: Boolean
     ) : MainAction
 
-    data object RefreshGetBusStops : MainAction
+    data object RefreshData : MainAction
 
     data object MarkBusStopNearbyDialogAsShown : MainAction
 

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.repository.MainRepository
-import com.adrian.diptrack.domain.usecase.GetBusStopLocationsUseCase
+import com.adrian.diptrack.domain.usecase.GetInitialDataUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentGeofenceStatusUseCase
 import com.adrian.diptrack.presentation.common.UiState
 import com.adrian.diptrack.presentation.observer.NetworkStatusObserver
@@ -12,19 +12,17 @@ import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 class MainViewModel(
     private val manager: MapsManager,
     private val repository: MainRepository,
-    private val getBusStopLocationsUseCase: GetBusStopLocationsUseCase,
+    private val getInitialDataUseCase: GetInitialDataUseCase,
     private val getCurrentGeofenceStatusUseCase: GetCurrentGeofenceStatusUseCase,
     private val networkStatusObserver: NetworkStatusObserver
 ) : ViewModel() {
@@ -42,13 +40,13 @@ class MainViewModel(
         observeNetwork()
         observePreferences()
         animateToUserLocation()
-        getBusStops()
+        getInitialData()
     }
 
     private fun observeNetwork() {
         viewModelScope.launch {
             networkStatusObserver.isConnected.collect {
-                getBusStops()
+                getInitialData()
             }
         }
     }
@@ -61,7 +59,7 @@ class MainViewModel(
             ) { geofence, busStopId ->
                 Pair(geofence, busStopId)
             }.collect { pair ->
-                val originName = getBusStopLocationsUseCase().data
+                val originName = getInitialDataUseCase().busStops
                     .firstOrNull { it.id == pair.second }?.name ?: ""
 
                 _mainState.update {
@@ -94,17 +92,17 @@ class MainViewModel(
         }
     }
 
-    fun getBusStops() {
+    fun getInitialData() {
         _mainState.update {
             it.copy(
-                busStopResult = UiState.Loading
+                initialDataResult = UiState.Loading
             )
         }
 
         viewModelScope.launch {
             _mainState.update {
                 it.copy(
-                    busStopResult = UiState.Success(getBusStopLocationsUseCase())
+                    initialDataResult = UiState.Success(getInitialDataUseCase())
                 )
             }
         }

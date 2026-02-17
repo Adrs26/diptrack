@@ -82,7 +82,10 @@ fun BusStopPickersContent(
                     busStopName = busStop.name,
                     modifier = Modifier
                         .clickable {
-                            onBusStopSelect(busStop.name, Coordinate(busStop.latitude, busStop.longitude))
+                            onBusStopSelect(
+                                busStop.name,
+                                Coordinate(busStop.latitude, busStop.longitude)
+                            )
                             onNavigateBack()
                         }
                         .padding(horizontal = 16.dp, vertical = 12.dp)

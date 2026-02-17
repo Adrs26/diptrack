@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BusStopDto(
+data class BusStopResponseDto(
     @SerialName("id_halte")
     val id: Int,
 
