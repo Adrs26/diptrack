@@ -33,9 +33,9 @@ fun MapsContent(
     isPolylinesShown: Boolean,
     onMapLoaded: () -> Unit,
     onBusStopMarkerClick: () -> Unit,
-    onProcessGetBusStops: () -> Unit,
-    onSucceedGetBusStops: () -> Unit,
-    onRefreshGetBusStops: () -> Unit
+    onProcessFetchData: () -> Unit,
+    onSucceedFetchData: () -> Unit,
+    onRefreshFetchData: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -49,7 +49,7 @@ fun MapsContent(
                     withDismissAction = true
                 )
                 when (result) {
-                    SnackbarResult.ActionPerformed -> onRefreshGetBusStops()
+                    SnackbarResult.ActionPerformed -> onRefreshFetchData()
                     SnackbarResult.Dismissed -> Unit
                 }
             }
@@ -101,9 +101,9 @@ fun MapsContent(
                     }
                 }
 
-                onSucceedGetBusStops()
+                onSucceedFetchData()
             }
-            is UiState.Loading -> onProcessGetBusStops()
+            is UiState.Loading -> onProcessFetchData()
             else -> Unit
         }
     }

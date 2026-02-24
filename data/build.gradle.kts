@@ -43,8 +43,9 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.play.services.maps)
-    implementation(libs.play.services.location)
+    api(libs.compass.geolocation)
+    api(libs.compass.geolocation.mobile)
+    api(libs.compass.permissions.mobile)
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)

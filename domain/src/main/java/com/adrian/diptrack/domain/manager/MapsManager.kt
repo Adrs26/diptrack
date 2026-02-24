@@ -4,9 +4,7 @@ import com.adrian.diptrack.domain.model.Coordinate
 
 interface MapsManager {
 
-    fun getUserCurrentLocation(onResult: (Coordinate?) -> Unit)
+    suspend fun getCurrentUserLocation(): Coordinate
 
     fun calculateHaversine(startCoordinate: Coordinate, endCoordinate: Coordinate): Float
-
-    fun getLastKnownLocation(): Coordinate?
 }

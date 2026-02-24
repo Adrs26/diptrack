@@ -2,28 +2,32 @@ package com.adrian.diptrack.presentation.screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adrian.diptrack.domain.common.ModeState
 import com.adrian.diptrack.domain.manager.MapsManager
+import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
-import com.adrian.diptrack.domain.usecase.GetCurrentGeofenceStatusUseCase
-import com.adrian.diptrack.domain.usecase.GetInitialDataUseCase
+import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
+import com.adrian.diptrack.domain.usecase.IsUserInsideBusStopGeofenceUseCase
 import com.adrian.diptrack.presentation.common.UiState
 import com.adrian.diptrack.presentation.observer.NetworkStatusObserver
 import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 class MainViewModel(
     private val manager: MapsManager,
     private val repository: MainRepository,
-    private val getInitialDataUseCase: GetInitialDataUseCase,
-    private val getCurrentGeofenceStatusUseCase: GetCurrentGeofenceStatusUseCase,
+    private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase,
+    private val isUserInsideBusStopGeofenceUseCase: IsUserInsideBusStopGeofenceUseCase,
     private val networkStatusObserver: NetworkStatusObserver
 ) : ViewModel() {
 
@@ -33,8 +37,8 @@ class MainViewModel(
     private val _mainState = MutableStateFlow(MainState())
     val mainState = _mainState.asStateFlow()
 
-//    private var busStopOriginLocation = LatLng(0.0, 0.0)
-//    private var busStopDestinationLocation = LatLng(0.0, 0.0)
+    private var originLocation: Coordinate = Coordinate(0.0, 0.0)
+    private var destinationLocation: Coordinate = Coordinate(0.0, 0.0)
 
     init {
         observeNetwork()
@@ -46,73 +50,105 @@ class MainViewModel(
     private fun observeNetwork() {
         viewModelScope.launch {
             networkStatusObserver.isConnected.collect {
-                getInitialData()
+                refreshData()
             }
+        }
+    }
+
+    fun refreshData() {
+        when (mainState.value.currentMode) {
+            is ModeState.Idle, ModeState.Arrive -> getInitialData()
+            is ModeState.Wait, ModeState.Drive -> getFilteredBusStops()
         }
     }
 
     private fun observePreferences() {
         viewModelScope.launch {
+            val busStops = repository.getInitialData().busStops
+
             combine(
                 repository.getGeofenceStatus(),
-                repository.getCurrentBusStopId()
-            ) { geofence, busStopId ->
-                Pair(geofence, busStopId)
-            }.collect { pair ->
-                val originName = getInitialDataUseCase().busStops
-                    .firstOrNull { it.id == pair.second }?.name ?: ""
+                repository.getCurrentBusStopId(),
+                repository.getCurrentBusStopLocation()
+            ) { geofence, busStopId, busStopLocation ->
+                val originName = busStops.firstOrNull { it.id == busStopId }?.name.orEmpty()
 
+                Triple(geofence, originName, busStopLocation)
+            }.collect { triple ->
                 _mainState.update {
                     it.copy(
-                        currentGeofence = pair.first,
-                        originName = originName
+                        currentGeofence = triple.first,
+                        originName = triple.second
                     )
                 }
+
+                originLocation = triple.third
             }
         }
     }
 
-    fun getCurrentGeofenceStatus(isGranted: Boolean, isMapLoaded: Boolean) {
-        if (isGranted && isMapLoaded) {
-            viewModelScope.launch {
-                getCurrentGeofenceStatusUseCase()
+    private fun getInitialData() {
+        _mainState.update { it.copy(initialDataResult = UiState.Loading) }
+
+        viewModelScope.launch {
+            _mainState.update {
+                it.copy(initialDataResult = UiState.Success(repository.getInitialData()))
             }
         }
     }
 
-    fun animateToUserLocation() {
-        manager.getUserCurrentLocation{ coordinate ->
-            coordinate?.let {
-                viewModelScope.launch {
-                    val cameraUpdate = CameraUpdateFactory
-                        .newLatLngZoom(LatLng(it.latitude, it.longitude), 16f)
-                    _cameraUpdateEvent.send(cameraUpdate)
-                }
-            }
-        }
-    }
-
-    fun getInitialData() {
-        _mainState.update {
-            it.copy(
-                initialDataResult = UiState.Loading
-            )
-        }
+    private fun getFilteredBusStops() {
+        _mainState.update { it.copy(initialDataResult = UiState.Loading) }
 
         viewModelScope.launch {
             _mainState.update {
                 it.copy(
-                    initialDataResult = UiState.Success(getInitialDataUseCase())
+                    initialDataResult = UiState.Success(
+                        getFilteredBusStopsUseCase(originLocation, destinationLocation)
+                    )
                 )
             }
         }
     }
 
-    fun markBusStopNearbyDialogAsShown() {
-        _mainState.update {
-            it.copy(
-                hasShownBusStopNearbyDialog = true
-            )
+    fun animateToUserLocation() {
+        viewModelScope.launch {
+            val coordinate = manager.getCurrentUserLocation()
+
+            val cameraUpdate = CameraUpdateFactory
+                .newLatLngZoom(LatLng(coordinate.latitude, coordinate.longitude), 16f)
+
+            _cameraUpdateEvent.send(cameraUpdate)
+        }
+    }
+
+    fun startTracking(destinationName: String, destinationLocation: Coordinate) {
+        _mainState.update { it.copy(initialDataResult = UiState.Loading) }
+
+        this.destinationLocation = destinationLocation
+
+        viewModelScope.launch {
+            val isInsideGeofence = isUserInsideBusStopGeofenceUseCase()
+
+            if (isInsideGeofence) {
+                val result = getFilteredBusStopsUseCase(originLocation, destinationLocation)
+                _mainState.update {
+                    it.copy(
+                        currentMode = ModeState.Wait,
+                        initialDataResult = UiState.Success(result),
+                        destinationName = destinationName
+                    )
+                }
+            } else {
+                _mainState.update {
+                    it.copy(
+                        showToast = true,
+                        initialDataResult = UiState.Success(repository.getInitialData())
+                    )
+                }
+                delay(3.seconds)
+                _mainState.update { it.copy(showToast = false) }
+            }
         }
     }
 }

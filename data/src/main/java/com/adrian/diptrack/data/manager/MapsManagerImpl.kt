@@ -1,38 +1,23 @@
 package com.adrian.diptrack.data.manager
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Location
-import androidx.core.app.ActivityCompat
 import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.Coordinate
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.Tasks
+import dev.jordond.compass.Priority
+import dev.jordond.compass.geolocation.Geolocator
+import dev.jordond.compass.geolocation.GeolocatorResult
 
-class MapsManagerImpl(
-    private val context: Context,
-    private val fusedLocationClient: FusedLocationProviderClient
-) : MapsManager {
+class MapsManagerImpl(private val geolocator: Geolocator) : MapsManager {
 
-    override fun getUserCurrentLocation(onResult: (Coordinate?) -> Unit) {
-        if (
-            ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-
-        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-            .addOnSuccessListener { location ->
-                if (location != null) {
-                    onResult(Coordinate(location.latitude, location.longitude))
-                } else {
-                    onResult(null)
-                }
+    override suspend fun getCurrentUserLocation(): Coordinate {
+        return when (val result = geolocator.current(Priority.HighAccuracy)) {
+            is GeolocatorResult.Success -> {
+                Coordinate(
+                    result.data.coordinates.latitude,
+                    result.data.coordinates.longitude
+                )
+            }
+            is GeolocatorResult.Error -> Coordinate(0.0, 0.0)
         }
     }
 
@@ -49,22 +34,5 @@ class MapsManagerImpl(
             results
         )
         return results[0]
-    }
-
-    override fun getLastKnownLocation(): Coordinate? {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED) {
-            return null
-        }
-
-        val task = fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-        return try {
-            val location = Tasks.await(task)
-            Coordinate(location.latitude, location.longitude)
-        } catch (_: Exception) {
-            null
-        }
     }
 }

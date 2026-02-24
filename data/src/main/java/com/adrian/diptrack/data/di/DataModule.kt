@@ -7,8 +7,8 @@ import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.data.repository.MainRepositoryImpl
 import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.repository.MainRepository
-import com.google.android.gms.location.LocationServices
-import org.koin.android.ext.koin.androidContext
+import dev.jordond.compass.geolocation.Geolocator
+import dev.jordond.compass.geolocation.mobile
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -20,5 +20,5 @@ val dataModule = module {
     singleOf(::MapsManagerImpl).bind(MapsManager::class)
     singleOf(::MainRepositoryImpl).bind(MainRepository::class)
 
-    single { LocationServices.getFusedLocationProviderClient(androidContext()) }
+    single { Geolocator.mobile() }
 }

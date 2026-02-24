@@ -14,7 +14,6 @@ fun NetworkError.toMessageError(): UiText {
         NetworkErrorType.PAYLOAD_TOO_LARGE -> UiText.StringResource(R.string.payload_too_large)
         NetworkErrorType.SERVER_ERROR -> UiText.StringResource(R.string.server_error)
         NetworkErrorType.SERIALIZATION -> UiText.StringResource(R.string.serialization_error)
-        NetworkErrorType.NO_ROUTE_FOUND -> UiText.StringResource(R.string.no_route_found)
         else -> UiText.StringResource(R.string.unknown_error)
     }
 }

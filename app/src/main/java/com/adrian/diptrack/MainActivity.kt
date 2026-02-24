@@ -33,28 +33,13 @@ class MainActivity : ComponentActivity() {
                         is MainAction.AnimateToUserLocation -> {
                             viewModel.animateToUserLocation()
                         }
-
-                        is MainAction.GetCurrentGeofenceStatus -> {
-                            viewModel.getCurrentGeofenceStatus(
-                                isGranted = action.isPermissionGranted,
-                                isMapLoaded = action.isMapLoaded
-                            )
-                        }
-
                         is MainAction.RefreshData -> {
-                            viewModel.getInitialData()
-                            viewModel.getCurrentGeofenceStatus(
-                                isGranted = true,
-                                isMapLoaded = true
-                            )
+                            viewModel.refreshData()
                         }
-
-                        is MainAction.MarkBusStopNearbyDialogAsShown -> {
-                            viewModel.markBusStopNearbyDialogAsShown()
+                        is MainAction.StartTracking -> {
+                            viewModel.startTracking(action.destinationName, action.destinationLocation)
                         }
-
-                        is MainAction.StartTracking -> {}
-                        is MainAction.StopTracking -> {}
+                        is MainAction.StopTracking -> Unit
                     }
                 }
             }

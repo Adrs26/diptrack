@@ -6,14 +6,7 @@ sealed interface MainAction {
 
     data object AnimateToUserLocation : MainAction
 
-    data class GetCurrentGeofenceStatus(
-        val isPermissionGranted: Boolean,
-        val isMapLoaded: Boolean
-    ) : MainAction
-
     data object RefreshData : MainAction
-
-    data object MarkBusStopNearbyDialogAsShown : MainAction
 
     data class StartTracking(
         val destinationName: String,

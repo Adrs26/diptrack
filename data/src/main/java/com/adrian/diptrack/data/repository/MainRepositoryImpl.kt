@@ -61,13 +61,13 @@ class MainRepositoryImpl(
         }
     }
 
-    override suspend fun getGeofenceStatus(): Flow<GeofenceState> =
+    override fun getGeofenceStatus(): Flow<GeofenceState> =
         localDataSource.getGeofenceStatus()
 
-    override suspend fun getCurrentBusStopId(): Flow<Int> =
+    override fun getCurrentBusStopId(): Flow<Int> =
         localDataSource.getCurrentBusStopId()
 
-    override suspend fun getCurrentBusStopLocation(): Flow<Coordinate> =
+    override fun getCurrentBusStopLocation(): Flow<Coordinate> =
         localDataSource.getCurrentBusStopLocation()
 
     override suspend fun setGeofenceStatus(geofence: GeofenceState) =

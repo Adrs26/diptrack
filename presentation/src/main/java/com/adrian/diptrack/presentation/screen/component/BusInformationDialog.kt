@@ -44,70 +44,17 @@ fun BusInformationDialog(
                     text = "Bus H1700AER",
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "Arif Suherman",
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                DriverInformation(
+                    modifier = Modifier.fillMaxWidth()
+                )
                 HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.tertiary
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "Kursi Terisi",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "23",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "Kursi Tersedia",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "2",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
-                }
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = "Halte berikutnya",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = "Halte Masjid Hijau LPPU",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+                SeatInformation(
+                    modifier = Modifier.fillMaxWidth()
+                )
+                NextBusStopInformation()
                 OutlinedButton(
                     onClick = onDismissRequest,
                     modifier = Modifier
@@ -128,5 +75,81 @@ fun BusInformationDialog(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun DriverInformation(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Person,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "Arif Suherman",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun SeatInformation(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Kursi Terisi",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = "23",
+                style = MaterialTheme.typography.titleLarge
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Kursi Tersedia",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = "2",
+                style = MaterialTheme.typography.titleLarge
+            )
+        }
+    }
+}
+
+@Composable
+private fun NextBusStopInformation() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = "Halte berikutnya",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            text = "Halte Masjid Hijau LPPU",
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }

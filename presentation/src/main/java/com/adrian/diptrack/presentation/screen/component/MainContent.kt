@@ -49,9 +49,9 @@ fun MainContent(
     onMyLocationButtonClick: () -> Unit,
     onPolylinesButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
-    onProcessGetBusStops: () -> Unit,
-    onSucceedGetBusStops: () -> Unit,
-    onRefreshGetBusStops: () -> Unit,
+    onProcessFetchData: () -> Unit,
+    onSucceedFetchData: () -> Unit,
+    onRefreshFetchData: () -> Unit,
     onStopTrackingClick: () -> Unit,
     onChangeDestinationClick: () -> Unit
 ) {
@@ -96,9 +96,9 @@ fun MainContent(
                 isPolylinesShown = isPolylinesShown,
                 onMapLoaded = onMapLoaded,
                 onBusStopMarkerClick = onBusStopMarkerClick,
-                onProcessGetBusStops = onProcessGetBusStops,
-                onSucceedGetBusStops = onSucceedGetBusStops,
-                onRefreshGetBusStops = onRefreshGetBusStops
+                onProcessFetchData = onProcessFetchData,
+                onSucceedFetchData = onSucceedFetchData,
+                onRefreshFetchData = onRefreshFetchData
             )
 
             if (isMapLoaded) {

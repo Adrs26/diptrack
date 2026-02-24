@@ -10,8 +10,7 @@ enum class NetworkErrorType : NetworkError {
     PAYLOAD_TOO_LARGE,
     SERVER_ERROR,
     SERIALIZATION,
-    UNKNOWN,
-    NO_ROUTE_FOUND;
+    UNKNOWN
 }
 
 sealed interface Result<out D, out E: NetworkError> {

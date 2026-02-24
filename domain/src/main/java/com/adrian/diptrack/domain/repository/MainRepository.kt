@@ -9,11 +9,11 @@ interface MainRepository {
 
     suspend fun getInitialData(): InitialDataResult
 
-    suspend fun getGeofenceStatus(): Flow<GeofenceState>
+    fun getGeofenceStatus(): Flow<GeofenceState>
 
-    suspend fun getCurrentBusStopId(): Flow<Int>
+    fun getCurrentBusStopId(): Flow<Int>
 
-    suspend fun getCurrentBusStopLocation(): Flow<Coordinate>
+    fun getCurrentBusStopLocation(): Flow<Coordinate>
 
     suspend fun setGeofenceStatus(geofence: GeofenceState)
 
