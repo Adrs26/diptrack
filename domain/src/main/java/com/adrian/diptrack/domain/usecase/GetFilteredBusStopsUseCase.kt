@@ -2,15 +2,15 @@ package com.adrian.diptrack.domain.usecase
 
 import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.model.InitialDataResult
+import com.adrian.diptrack.domain.model.StaticData
 import com.adrian.diptrack.domain.repository.MainRepository
 
 class GetFilteredBusStopsUseCase(
     private val manager: MapsManager,
     private val repository: MainRepository
 ) {
-    suspend operator fun invoke(origin: Coordinate, destination: Coordinate): InitialDataResult {
-        val initialData = repository.getInitialData()
+    suspend operator fun invoke(origin: Coordinate, destination: Coordinate): StaticData {
+        val initialData = repository.getStaticData()
 
         val filteredStops = initialData.busStops.filter { stop ->
             val stopCoordinate = Coordinate(stop.latitude, stop.longitude)

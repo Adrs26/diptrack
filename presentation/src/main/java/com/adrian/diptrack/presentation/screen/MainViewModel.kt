@@ -1,154 +1,102 @@
 package com.adrian.diptrack.presentation.screen
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.repository.MainRepository
+import com.adrian.diptrack.domain.usecase.CheckUserWithinBusStopRadiusUseCase
+import com.adrian.diptrack.domain.usecase.GetCurrentBusStopUseCase
+import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
-import com.adrian.diptrack.domain.usecase.IsUserInsideBusStopGeofenceUseCase
-import com.adrian.diptrack.presentation.common.UiState
+import com.adrian.diptrack.domain.usecase.GetStaticDataUseCase
 import com.adrian.diptrack.presentation.observer.NetworkStatusObserver
-import com.google.android.gms.maps.CameraUpdate
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.viewmodel.container
 
 class MainViewModel(
-    private val manager: MapsManager,
-    private val repository: MainRepository,
+    private val checkUserWithinBusStopRadiusUseCase: CheckUserWithinBusStopRadiusUseCase,
+    private val getCurrentBusStopUseCase: GetCurrentBusStopUseCase,
+    private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase,
-    private val isUserInsideBusStopGeofenceUseCase: IsUserInsideBusStopGeofenceUseCase,
+    private val getStaticDataUseCase: GetStaticDataUseCase,
     private val networkStatusObserver: NetworkStatusObserver
-) : ViewModel() {
+) : ContainerHost<MainState, MainSideEffect>, ViewModel() {
 
-    private val _cameraUpdateEvent = Channel<CameraUpdate>(Channel.BUFFERED)
-    val cameraUpdateEvent = _cameraUpdateEvent.receiveAsFlow()
-
-    private val _mainState = MutableStateFlow(MainState())
-    val mainState = _mainState.asStateFlow()
+    override val container = container<MainState, MainSideEffect>(MainState())
 
     private var originLocation: Coordinate = Coordinate(0.0, 0.0)
     private var destinationLocation: Coordinate = Coordinate(0.0, 0.0)
 
     init {
         observeNetwork()
-        observePreferences()
-        animateToUserLocation()
+        observeCurrentBusStop()
         getInitialData()
+        animateToUserLocation()
     }
 
-    private fun observeNetwork() {
-        viewModelScope.launch {
-            networkStatusObserver.isConnected.collect {
-                refreshData()
-            }
+    private fun observeNetwork() = intent {
+        networkStatusObserver.isConnected.collect {
+            getInitialData()
         }
     }
 
-    fun refreshData() {
-        when (mainState.value.currentMode) {
-            is ModeState.Idle, ModeState.Arrive -> getInitialData()
-            is ModeState.Wait, ModeState.Drive -> getFilteredBusStops()
+    private fun observeCurrentBusStop() = intent {
+        getCurrentBusStopUseCase().collect { pair ->
+            reduce { state.copy(originName = pair.first) }
+            originLocation = pair.second
         }
     }
 
-    private fun observePreferences() {
-        viewModelScope.launch {
-            val busStops = repository.getInitialData().busStops
+    fun getInitialData() = intent {
+        reduce { state.copy(isLoading = true, error = null) }
 
-            combine(
-                repository.getGeofenceStatus(),
-                repository.getCurrentBusStopId(),
-                repository.getCurrentBusStopLocation()
-            ) { geofence, busStopId, busStopLocation ->
-                val originName = busStops.firstOrNull { it.id == busStopId }?.name.orEmpty()
+        val result = when (state.currentMode) {
+            is ModeState.Idle, ModeState.Arrive -> getStaticDataUseCase()
+            else -> getFilteredBusStopsUseCase(originLocation, destinationLocation)
+        }
 
-                Triple(geofence, originName, busStopLocation)
-            }.collect { triple ->
-                _mainState.update {
-                    it.copy(
-                        currentGeofence = triple.first,
-                        originName = triple.second
-                    )
-                }
-
-                originLocation = triple.third
-            }
+        reduce {
+            state.copy(
+                busStops = result.busStops,
+                routes = result.routes,
+                isLoading = false,
+                error = result.error
+            )
         }
     }
 
-    private fun getInitialData() {
-        _mainState.update { it.copy(initialDataResult = UiState.Loading) }
+    fun animateToUserLocation() = intent {
+        val coordinate = getCurrentUserLocationUseCase()
+        val cameraUpdate = CameraUpdateFactory
+            .newLatLngZoom(LatLng(coordinate.latitude, coordinate.longitude), 16f)
 
-        viewModelScope.launch {
-            _mainState.update {
-                it.copy(initialDataResult = UiState.Success(repository.getInitialData()))
-            }
-        }
+        postSideEffect(MainSideEffect.CameraUpdate(cameraUpdate))
     }
 
-    private fun getFilteredBusStops() {
-        _mainState.update { it.copy(initialDataResult = UiState.Loading) }
+    fun startTracking(destinationName: String, destinationLocation: Coordinate) = intent {
+        reduce { state.copy(isLoading = true, error = null) }
 
-        viewModelScope.launch {
-            _mainState.update {
-                it.copy(
-                    initialDataResult = UiState.Success(
-                        getFilteredBusStopsUseCase(originLocation, destinationLocation)
-                    )
+        this@MainViewModel.destinationLocation = destinationLocation
+
+        val isWithinBusStopRadius = checkUserWithinBusStopRadiusUseCase()
+
+        if (isWithinBusStopRadius) {
+            val result = getFilteredBusStopsUseCase(originLocation, destinationLocation)
+
+            reduce {
+                state.copy(
+                    currentMode = ModeState.Wait,
+                    busStops = result.busStops,
+                    routes = result.routes,
+                    isLoading = false,
+                    error = result.error,
+                    destinationName = destinationName
                 )
             }
-        }
-    }
-
-    fun animateToUserLocation() {
-        viewModelScope.launch {
-            val coordinate = manager.getCurrentUserLocation()
-
-            val cameraUpdate = CameraUpdateFactory
-                .newLatLngZoom(LatLng(coordinate.latitude, coordinate.longitude), 16f)
-
-            _cameraUpdateEvent.send(cameraUpdate)
-        }
-    }
-
-    fun startTracking(destinationName: String, destinationLocation: Coordinate) {
-        _mainState.update { it.copy(initialDataResult = UiState.Loading) }
-
-        this.destinationLocation = destinationLocation
-
-        viewModelScope.launch {
-            val isInsideGeofence = isUserInsideBusStopGeofenceUseCase()
-
-            if (isInsideGeofence) {
-                val result = getFilteredBusStopsUseCase(originLocation, destinationLocation)
-                _mainState.update {
-                    it.copy(
-                        currentMode = ModeState.Wait,
-                        initialDataResult = UiState.Success(result),
-                        destinationName = destinationName
-                    )
-                }
-            } else {
-                _mainState.update {
-                    it.copy(
-                        showToast = true,
-                        initialDataResult = UiState.Success(repository.getInitialData())
-                    )
-                }
-                delay(3.seconds)
-                _mainState.update { it.copy(showToast = false) }
-            }
+        } else {
+            reduce { state.copy(isLoading = false) }
+            postSideEffect(MainSideEffect.ShowToast)
         }
     }
 }

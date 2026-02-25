@@ -6,11 +6,10 @@ import com.adrian.diptrack.data.mapper.toBusStopEntity
 import com.adrian.diptrack.data.mapper.toRouteDomain
 import com.adrian.diptrack.data.mapper.toRouteEntity
 import com.adrian.diptrack.data.remote.source.RemoteDataSource
-import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.common.Result
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.model.InitialDataResult
+import com.adrian.diptrack.domain.model.StaticData
 import com.adrian.diptrack.domain.repository.MainRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -21,7 +20,7 @@ class MainRepositoryImpl(
     private val remoteDataSource: RemoteDataSource
 ) : MainRepository {
 
-    override suspend fun getInitialData(): InitialDataResult = coroutineScope {
+    override suspend fun getStaticData(): StaticData = coroutineScope {
         val busStopDeferred = async { remoteDataSource.getBusStops() }
         val routeDeferred = async { remoteDataSource.getRoutes() }
 
@@ -38,19 +37,17 @@ class MainRepositoryImpl(
                     routes = routes.map { it.toRouteEntity() }
                 )
 
-                InitialDataResult(
+                StaticData(
                     busStops = busStops.map { it.toBusStopDomain() },
                     routes = routes.map { it.toRouteDomain() },
-                    isOffline = false,
                     error = null
                 )
             }
 
             else -> {
-                InitialDataResult(
+                StaticData(
                     busStops = localDataSource.getBusStops().map { it.toBusStopDomain() },
                     routes = localDataSource.getRoutes().map { it.toRouteDomain() },
-                    isOffline = true,
                     error = when {
                         busStopResult is Result.Error -> busStopResult.error
                         routeResult is Result.Error -> routeResult.error
@@ -61,17 +58,11 @@ class MainRepositoryImpl(
         }
     }
 
-    override fun getGeofenceStatus(): Flow<GeofenceState> =
-        localDataSource.getGeofenceStatus()
-
     override fun getCurrentBusStopId(): Flow<Int> =
         localDataSource.getCurrentBusStopId()
 
     override fun getCurrentBusStopLocation(): Flow<Coordinate> =
         localDataSource.getCurrentBusStopLocation()
-
-    override suspend fun setGeofenceStatus(geofence: GeofenceState) =
-        localDataSource.setGeofenceStatus(geofence)
 
     override suspend fun setCurrentBusStopId(id: Int) =
         localDataSource.setCurrentBusStopId(id)

@@ -4,12 +4,12 @@ import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
 
-class IsUserInsideBusStopGeofenceUseCase(
+class CheckUserWithinBusStopRadiusUseCase(
     private val manager: MapsManager,
     private val repository: MainRepository
 ) {
     suspend operator fun invoke(): Boolean {
-        val busStops = repository.getInitialData().busStops
+        val busStops = repository.getStaticData().busStops
         val location = manager.getCurrentUserLocation()
 
         val userCoordinate = Coordinate(location.latitude, location.longitude)

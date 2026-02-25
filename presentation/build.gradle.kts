@@ -50,6 +50,9 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.koin.androidx.compose)
     implementation(libs.maps.compose)
+    implementation(libs.orbit.mvi.compose)
+    implementation(libs.orbit.mvi.core)
+    implementation(libs.orbit.mvi.viewmodel)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

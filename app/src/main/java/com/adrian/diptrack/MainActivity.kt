@@ -5,12 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adrian.diptrack.presentation.screen.MainAction
 import com.adrian.diptrack.presentation.screen.MainScreen
 import com.adrian.diptrack.presentation.screen.MainViewModel
 import com.adrian.diptrack.presentation.theme.DipTrackTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.orbitmvi.orbit.compose.collectAsState
 
 class MainActivity : ComponentActivity() {
 
@@ -22,19 +22,19 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DipTrackTheme {
-                val state by viewModel.mainState.collectAsStateWithLifecycle()
-                val cameraUpdateEvent = viewModel.cameraUpdateEvent
+                val state by viewModel.collectAsState()
+                val sideEffect = viewModel.container.sideEffectFlow
 
                 MainScreen(
                     state = state,
-                    cameraUpdateEvent = cameraUpdateEvent,
+                    sideEffect = sideEffect,
                 ) { action ->
                     when (action) {
                         is MainAction.AnimateToUserLocation -> {
                             viewModel.animateToUserLocation()
                         }
                         is MainAction.RefreshData -> {
-                            viewModel.refreshData()
+                            viewModel.getInitialData()
                         }
                         is MainAction.StartTracking -> {
                             viewModel.startTracking(action.destinationName, action.destinationLocation)

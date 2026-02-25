@@ -24,7 +24,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +39,7 @@ fun MainContent(
     etaMinutes: Int,
     distanceKilometers: Double,
     cameraPositionState: CameraPositionState,
+    snackbarHostState: SnackbarHostState,
     isLocationPermissionGranted: Boolean,
     isMapLoaded: Boolean,
     isSheetVisible: Boolean,
@@ -49,14 +49,9 @@ fun MainContent(
     onMyLocationButtonClick: () -> Unit,
     onPolylinesButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
-    onProcessFetchData: () -> Unit,
-    onSucceedFetchData: () -> Unit,
-    onRefreshFetchData: () -> Unit,
     onStopTrackingClick: () -> Unit,
     onChangeDestinationClick: () -> Unit
 ) {
-    val snackBarHostState = remember { SnackbarHostState() }
-
     BottomSheetScaffold(
         sheetContent = {
             SheetContent(
@@ -83,22 +78,19 @@ fun MainContent(
         sheetContainerColor = MaterialTheme.colorScheme.surface,
         sheetShadowElevation = 8.dp,
         sheetDragHandle = { SheetHandle(modifier = Modifier.padding(vertical = 16.dp)) },
-        snackbarHost = { SnackbarHost(snackBarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
             MapsContent(
-                initialDataResult = mainState.initialDataResult,
                 cameraPositionState = cameraPositionState,
-                snackBarHostState = snackBarHostState,
+                busStops = mainState.busStops,
+                routes = mainState.routes,
                 isLocationPermissionGranted = isLocationPermissionGranted,
                 isPolylinesShown = isPolylinesShown,
                 onMapLoaded = onMapLoaded,
-                onBusStopMarkerClick = onBusStopMarkerClick,
-                onProcessFetchData = onProcessFetchData,
-                onSucceedFetchData = onSucceedFetchData,
-                onRefreshFetchData = onRefreshFetchData
+                onBusStopMarkerClick = onBusStopMarkerClick
             )
 
             if (isMapLoaded) {

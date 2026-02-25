@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.core)
     implementation(libs.play.services.maps)
+    implementation(libs.orbit.mvi.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

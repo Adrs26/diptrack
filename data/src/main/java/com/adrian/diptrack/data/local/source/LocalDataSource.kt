@@ -6,7 +6,6 @@ import com.adrian.diptrack.data.local.database.dao.MainDao
 import com.adrian.diptrack.data.local.database.entity.BusStopEntity
 import com.adrian.diptrack.data.local.database.entity.RouteEntity
 import com.adrian.diptrack.data.local.datastore.DipTrackPreferences
-import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.model.Coordinate
 import kotlinx.coroutines.flow.Flow
 
@@ -16,13 +15,9 @@ class LocalDataSource(
     private val dao: MainDao
 ) {
 
-    fun getGeofenceStatus(): Flow<GeofenceState> = preferences.geofence
-
     fun getCurrentBusStopId(): Flow<Int> = preferences.currentBusStopId
 
     fun getCurrentBusStopLocation(): Flow<Coordinate> = preferences.currentBusStopLocation
-
-    suspend fun setGeofenceStatus(geofence: GeofenceState) = preferences.setGeofence(geofence)
 
     suspend fun setCurrentBusStopId(id: Int) = preferences.setCurrentBusStopId(id)
 

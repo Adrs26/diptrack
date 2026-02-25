@@ -1,15 +1,16 @@
 package com.adrian.diptrack.presentation.screen
 
-import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.model.InitialDataResult
-import com.adrian.diptrack.presentation.common.UiState
+import com.adrian.diptrack.domain.common.NetworkError
+import com.adrian.diptrack.domain.model.BusStop
+import com.adrian.diptrack.domain.model.Route
 
 data class MainState(
     val currentMode: ModeState = ModeState.Idle,
-    val currentGeofence: GeofenceState = GeofenceState.Idle,
-    val initialDataResult: UiState<InitialDataResult> = UiState.Empty,
-    val showToast: Boolean = false,
+    val busStops: List<BusStop> = emptyList(),
+    val routes: List<Route> = emptyList(),
     val originName: String = "",
-    val destinationName: String = ""
+    val destinationName: String = "",
+    val isLoading: Boolean = false,
+    val error: NetworkError? = null
 )

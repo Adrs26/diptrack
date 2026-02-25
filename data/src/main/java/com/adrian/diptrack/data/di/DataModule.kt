@@ -1,5 +1,7 @@
 package com.adrian.diptrack.data.di
 
+import android.content.Context
+import androidx.datastore.preferences.preferencesDataStore
 import com.adrian.diptrack.data.local.datastore.DipTrackPreferences
 import com.adrian.diptrack.data.local.source.LocalDataSource
 import com.adrian.diptrack.data.manager.MapsManagerImpl
@@ -9,16 +11,19 @@ import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.repository.MainRepository
 import dev.jordond.compass.geolocation.Geolocator
 import dev.jordond.compass.geolocation.mobile
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+val Context.dataStore by preferencesDataStore("diptrack_prefs")
+
 val dataModule = module {
-    singleOf(::DipTrackPreferences)
+    single { Geolocator.mobile() }
+    single { DipTrackPreferences(androidContext().dataStore) }
+
     singleOf(::LocalDataSource)
     singleOf(::RemoteDataSource)
     singleOf(::MapsManagerImpl).bind(MapsManager::class)
     singleOf(::MainRepositoryImpl).bind(MainRepository::class)
-
-    single { Geolocator.mobile() }
 }

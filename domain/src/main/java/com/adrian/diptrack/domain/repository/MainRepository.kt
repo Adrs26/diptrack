@@ -1,21 +1,16 @@
 package com.adrian.diptrack.domain.repository
 
-import com.adrian.diptrack.domain.common.GeofenceState
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.model.InitialDataResult
+import com.adrian.diptrack.domain.model.StaticData
 import kotlinx.coroutines.flow.Flow
 
 interface MainRepository {
 
-    suspend fun getInitialData(): InitialDataResult
-
-    fun getGeofenceStatus(): Flow<GeofenceState>
+    suspend fun getStaticData(): StaticData
 
     fun getCurrentBusStopId(): Flow<Int>
 
     fun getCurrentBusStopLocation(): Flow<Coordinate>
-
-    suspend fun setGeofenceStatus(geofence: GeofenceState)
 
     suspend fun setCurrentBusStopId(id: Int)
 

@@ -13,7 +13,7 @@ fun DialogSection(
 ) {
     when (dialogState) {
         DialogState.None -> Unit
-        DialogState.FetchDataLoading -> {
+        DialogState.Loading -> {
             LoadingDialog(
                 text = stringResource(R.string.processing_data),
                 modifier = Modifier.fillMaxWidth()
@@ -34,7 +34,7 @@ fun DialogSection(
 
 sealed class DialogState {
     data object None : DialogState()
-    data object FetchDataLoading : DialogState()
+    data object Loading : DialogState()
     data object BusInformation : DialogState()
     data object BusStopInformation : DialogState()
 }
