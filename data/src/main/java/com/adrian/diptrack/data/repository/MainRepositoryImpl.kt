@@ -45,6 +45,7 @@ class MainRepositoryImpl(
 
                 StaticData(
                     busStops = busStops.map { it.toBusStopDomain() },
+                    filteredBusStops = busStops.map { it.toBusStopDomain() },
                     routes = routes.map { it.toRouteDomain() },
                     error = null
                 )
@@ -53,6 +54,7 @@ class MainRepositoryImpl(
             else -> {
                 StaticData(
                     busStops = localDataSource.getBusStops().map { it.toBusStopDomain() },
+                    filteredBusStops = localDataSource.getBusStops().map { it.toBusStopDomain() },
                     routes = localDataSource.getRoutes().map { it.toRouteDomain() },
                     error = when {
                         busStopResult is Result.Error -> busStopResult.error

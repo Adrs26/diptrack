@@ -20,7 +20,7 @@ class GetFilteredBusStopsUseCase(
         }
 
         return initialData.copy(
-            busStops = filteredStops
+            filteredBusStops = filteredStops
         )
     }
 

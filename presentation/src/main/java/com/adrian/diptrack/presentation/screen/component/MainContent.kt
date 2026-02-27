@@ -85,7 +85,7 @@ fun MainContent(
         ) {
             MapsContent(
                 cameraPositionState = cameraPositionState,
-                busStops = mainState.busStops,
+                busStops = mainState.filteredBusStops,
                 routes = mainState.routes,
                 isLocationPermissionGranted = isLocationPermissionGranted,
                 isPolylinesShown = isPolylinesShown,

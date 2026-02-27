@@ -8,6 +8,7 @@ import com.adrian.diptrack.domain.model.Route
 data class MainState(
     val currentMode: ModeState = ModeState.Idle,
     val busStops: List<BusStop> = emptyList(),
+    val filteredBusStops: List<BusStop> = emptyList(),
     val routes: List<Route> = emptyList(),
     val originName: String = "",
     val destinationName: String = "",

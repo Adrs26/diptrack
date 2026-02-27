@@ -17,3 +17,7 @@ fun NetworkError.toMessageError(): UiText {
         else -> UiText.StringResource(R.string.unknown_error)
     }
 }
+
+fun Double.isCloseTo(other: Double, epsilon: Double = 1e-6): Boolean {
+    return kotlin.math.abs(this - other) < epsilon
+}

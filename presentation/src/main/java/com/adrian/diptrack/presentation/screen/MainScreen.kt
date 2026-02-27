@@ -83,7 +83,7 @@ fun MainScreen(
         onPolylinesButtonClick = { isPolylinesShown = !isPolylinesShown },
         onMainButtonClick = { isBusStopPickersVisible = true },
         onStopTrackingClick = { onAction(MainAction.CancelTracking) },
-        onChangeDestinationClick = {}
+        onChangeDestinationClick = { isBusStopPickersVisible = true }
     )
 
     AnimatedVisibility(

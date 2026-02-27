@@ -25,13 +25,20 @@ fun HandleSideEffect(
     LaunchedEffect(Unit) {
         sideEffect.collect { sideEffect ->
             when (sideEffect) {
-                is MainSideEffect.CameraUpdate -> {
+                is MainSideEffect.AnimateCamera -> {
                     cameraPositionState.animate(sideEffect.cameraUpdate, 1000)
                 }
-                is MainSideEffect.ShowToast -> {
+                is MainSideEffect.ShowOutsideBusStopWarning -> {
                     Toast.makeText(
                         context,
-                        "Kamu tidak berada di area halte bus",
+                        "Datang ke area halte bus untuk memulai pemantauan",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                is MainSideEffect.ShowSameBusStopWarning -> {
+                    Toast.makeText(
+                        context,
+                        "Pilih halte tujuan yang berbeda dari halte keberangkatan",
                         Toast.LENGTH_LONG
                     ).show()
                 }

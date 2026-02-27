@@ -9,6 +9,7 @@ import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
 import com.adrian.diptrack.domain.usecase.GetStaticDataUseCase
 import com.adrian.diptrack.presentation.observer.NetworkStatusObserver
+import com.adrian.diptrack.presentation.screen.util.isCloseTo
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import org.orbitmvi.orbit.ContainerHost
@@ -59,6 +60,7 @@ class MainViewModel(
         reduce {
             state.copy(
                 busStops = result.busStops,
+                filteredBusStops = result.filteredBusStops,
                 routes = result.routes,
                 isLoading = false,
                 error = result.error
@@ -71,7 +73,7 @@ class MainViewModel(
         val cameraUpdate = CameraUpdateFactory
             .newLatLngZoom(LatLng(coordinate.latitude, coordinate.longitude), 16f)
 
-        postSideEffect(MainSideEffect.CameraUpdate(cameraUpdate))
+        postSideEffect(MainSideEffect.AnimateCamera(cameraUpdate))
     }
 
     fun startTracking(destinationName: String, destinationLocation: Coordinate) = intent {
@@ -80,26 +82,32 @@ class MainViewModel(
         this@MainViewModel.destinationLocation = destinationLocation
 
         val isWithinBusStopRadius = checkUserWithinBusStopRadiusUseCase()
+        val isSameOrigin = originLocation.latitude.isCloseTo(destinationLocation.latitude) &&
+                           originLocation.longitude.isCloseTo(destinationLocation.longitude)
 
-        if (isWithinBusStopRadius) {
-            val filteredBusStops = getFilteredBusStopsUseCase(
-                originLocation,
-                destinationLocation
-            ).busStops
-
-            reduce {
-                state.copy(
-                    currentMode = ModeState.Wait,
-                    busStops = filteredBusStops,
-                    destinationName = destinationName,
-                    isLoading = false
-                )
-            }
-            animateToUserLocation()
-        } else {
+        if (!isWithinBusStopRadius) {
             reduce { state.copy(isLoading = false) }
-            postSideEffect(MainSideEffect.ShowToast)
+            postSideEffect(MainSideEffect.ShowOutsideBusStopWarning)
+            return@intent
         }
+
+        if (isSameOrigin) {
+            reduce { state.copy(isLoading = false) }
+            postSideEffect(MainSideEffect.ShowSameBusStopWarning)
+            return@intent
+        }
+
+        val filteredStops = getFilteredBusStopsUseCase(originLocation, destinationLocation).filteredBusStops
+
+        reduce {
+            state.copy(
+                currentMode = ModeState.Wait,
+                filteredBusStops = filteredStops,
+                destinationName = destinationName,
+                isLoading = false
+            )
+        }
+        animateToUserLocation()
     }
 
     fun cancelTracking() = intent {
@@ -110,7 +118,7 @@ class MainViewModel(
         reduce {
             state.copy(
                 currentMode = ModeState.Idle,
-                busStops = busStops,
+                filteredBusStops = busStops,
                 isLoading = false
             )
         }
