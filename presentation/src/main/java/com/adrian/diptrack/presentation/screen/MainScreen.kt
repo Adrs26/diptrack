@@ -54,8 +54,9 @@ fun MainScreen(
         currentMode = state.currentMode,
         isLoading = state.isLoading,
         onShowBottomSheet = { isSheetVisible = true },
+        onHideBottomSheet = { isSheetVisible = false },
         onShowLoadingDialog = { dialogState = DialogState.Loading },
-        onDismissLoadingDialog = { dialogState = DialogState.None }
+        onHideLoadingDialog = { dialogState = DialogState.None }
     )
 
     HandleSideEffect(
@@ -81,7 +82,7 @@ fun MainScreen(
         onMyLocationButtonClick = { onAction(MainAction.AnimateToUserLocation) },
         onPolylinesButtonClick = { isPolylinesShown = !isPolylinesShown },
         onMainButtonClick = { isBusStopPickersVisible = true },
-        onStopTrackingClick = {},
+        onStopTrackingClick = { onAction(MainAction.CancelTracking) },
         onChangeDestinationClick = {}
     )
 

@@ -82,21 +82,38 @@ class MainViewModel(
         val isWithinBusStopRadius = checkUserWithinBusStopRadiusUseCase()
 
         if (isWithinBusStopRadius) {
-            val result = getFilteredBusStopsUseCase(originLocation, destinationLocation)
+            val filteredBusStops = getFilteredBusStopsUseCase(
+                originLocation,
+                destinationLocation
+            ).busStops
 
             reduce {
                 state.copy(
                     currentMode = ModeState.Wait,
-                    busStops = result.busStops,
-                    routes = result.routes,
-                    isLoading = false,
-                    error = result.error,
-                    destinationName = destinationName
+                    busStops = filteredBusStops,
+                    destinationName = destinationName,
+                    isLoading = false
                 )
             }
+            animateToUserLocation()
         } else {
             reduce { state.copy(isLoading = false) }
             postSideEffect(MainSideEffect.ShowToast)
         }
+    }
+
+    fun cancelTracking() = intent {
+        reduce { state.copy(isLoading = true, error = null) }
+
+        val busStops = getStaticDataUseCase().busStops
+
+        reduce {
+            state.copy(
+                currentMode = ModeState.Idle,
+                busStops = busStops,
+                isLoading = false
+            )
+        }
+        animateToUserLocation()
     }
 }

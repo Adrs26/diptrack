@@ -8,15 +8,14 @@ fun ObserveMainState(
     currentMode: ModeState,
     isLoading: Boolean,
     onShowBottomSheet: () -> Unit,
+    onHideBottomSheet: () -> Unit,
     onShowLoadingDialog: () -> Unit,
-    onDismissLoadingDialog: () -> Unit
+    onHideLoadingDialog: () -> Unit
 ) {
     when (currentMode) {
-        ModeState.Idle -> Unit
-        ModeState.Wait -> onShowBottomSheet()
-        ModeState.Drive -> Unit
-        ModeState.Arrive -> Unit
+        ModeState.Idle, ModeState.Arrive -> onHideBottomSheet()
+        ModeState.Wait, ModeState.Drive -> onShowBottomSheet()
     }
 
-    if (isLoading) onShowLoadingDialog() else onDismissLoadingDialog()
+    if (isLoading) onShowLoadingDialog() else onHideLoadingDialog()
 }

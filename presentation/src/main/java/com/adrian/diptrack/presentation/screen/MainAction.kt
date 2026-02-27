@@ -13,5 +13,5 @@ sealed interface MainAction {
         val destinationLocation: Coordinate
     ) : MainAction
 
-    data object StopTracking : MainAction
+    data object CancelTracking : MainAction
 }

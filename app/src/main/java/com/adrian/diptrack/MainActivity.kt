@@ -39,7 +39,9 @@ class MainActivity : ComponentActivity() {
                         is MainAction.StartTracking -> {
                             viewModel.startTracking(action.destinationName, action.destinationLocation)
                         }
-                        is MainAction.StopTracking -> Unit
+                        is MainAction.CancelTracking -> {
+                            viewModel.cancelTracking()
+                        }
                     }
                 }
             }

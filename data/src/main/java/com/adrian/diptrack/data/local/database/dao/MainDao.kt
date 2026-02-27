@@ -13,11 +13,11 @@ interface MainDao {
     @Query("SELECT * FROM bus_stop")
     suspend fun getBusStops(): List<BusStopEntity>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertBusStops(busStops: List<BusStopEntity>)
-
     @Query("SELECT * FROM route")
     suspend fun getRoutes(): List<RouteEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertBusStops(busStops: List<BusStopEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRoutes(routes: List<RouteEntity>)
