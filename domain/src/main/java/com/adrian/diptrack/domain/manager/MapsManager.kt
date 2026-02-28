@@ -7,4 +7,6 @@ interface MapsManager {
     suspend fun getCurrentUserLocation(): Coordinate
 
     fun calculateHaversine(startCoordinate: Coordinate, endCoordinate: Coordinate): Float
+
+    fun calculateDistanceInKm(startCoordinate: Coordinate, endCoordinate: Coordinate): Double
 }

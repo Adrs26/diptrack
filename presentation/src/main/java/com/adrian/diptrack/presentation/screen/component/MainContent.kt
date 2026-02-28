@@ -24,6 +24,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,31 +39,28 @@ import com.google.maps.android.compose.CameraPositionState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent(
-    mainState: MainState,
+    state: MainState,
     etaMinutes: Int,
-    distanceKilometers: Double,
     cameraPositionState: CameraPositionState,
     snackbarHostState: SnackbarHostState,
-    isLocationPermissionGranted: Boolean,
-    isMapLoaded: Boolean,
     isSheetVisible: Boolean,
-    isPolylinesShown: Boolean,
-    onMapLoaded: () -> Unit,
     onBusStopMarkerClick: () -> Unit,
     onMyLocationButtonClick: () -> Unit,
-    onPolylinesButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
     onStopTrackingClick: () -> Unit,
     onChangeDestinationClick: () -> Unit
 ) {
+    var isMapLoaded by rememberSaveable { mutableStateOf(false) }
+    var isPolylinesShown by rememberSaveable { mutableStateOf(false) }
+
     BottomSheetScaffold(
         sheetContent = {
             SheetContent(
-                currentMode = mainState.currentMode,
-                originName = mainState.originName,
-                destinationName = mainState.destinationName,
+                currentMode = state.currentMode,
+                originName = state.originName,
+                destinationName = state.destinationName,
                 etaMinutes = etaMinutes,
-                distanceKilometers = distanceKilometers,
+                distanceKilometers = state.distance,
                 onStopTrackingClick = onStopTrackingClick,
                 onChangeDestinationClick = onChangeDestinationClick,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -85,11 +86,10 @@ fun MainContent(
         ) {
             MapsContent(
                 cameraPositionState = cameraPositionState,
-                busStops = mainState.filteredBusStops,
-                routes = mainState.routes,
-                isLocationPermissionGranted = isLocationPermissionGranted,
+                busStops = state.filteredBusStops,
+                routes = state.routes,
                 isPolylinesShown = isPolylinesShown,
-                onMapLoaded = onMapLoaded,
+                onMapLoaded = { isMapLoaded = true },
                 onBusStopMarkerClick = onBusStopMarkerClick
             )
 
@@ -111,7 +111,7 @@ fun MainContent(
                 }
 
                 FloatingActionButton(
-                    onClick = onPolylinesButtonClick,
+                    onClick = { isPolylinesShown = !isPolylinesShown },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(top = 48.dp, end = 68.dp)

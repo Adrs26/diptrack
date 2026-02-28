@@ -10,6 +10,7 @@ data class MainState(
     val busStops: List<BusStop> = emptyList(),
     val filteredBusStops: List<BusStop> = emptyList(),
     val routes: List<Route> = emptyList(),
+    val distance: Double = 0.0,
     val originName: String = "",
     val destinationName: String = "",
     val isLoading: Boolean = false,

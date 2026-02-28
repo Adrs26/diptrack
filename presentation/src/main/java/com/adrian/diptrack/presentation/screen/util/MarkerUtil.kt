@@ -9,6 +9,11 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import kotlin.math.asin
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 object MarkerUtil {
     fun createBusStopMarker(context: Context, iconRes: Int): BitmapDescriptor {
@@ -90,70 +95,44 @@ object MarkerUtil {
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    fun createBusMarker(context: Context, iconRes: Int): BitmapDescriptor {
-        val totalSize = 70
-        val outerRectOffset = 2f
-        val outerCornerRadius = 24f
-        val innerRectSize = 50f
-        val innerRectOffset = (totalSize - innerRectSize) / 2f
-        val innerCornerRadius = 16f
-        val bitmap = createBitmap(totalSize, totalSize)
-        val canvas = Canvas(bitmap)
+    fun createBusMarker(iconRes: Int): BitmapDescriptor {
+        return BitmapDescriptorFactory.fromResource(iconRes)
+    }
 
-        val whiteBackground = Paint().apply {
-            color = "#F8FCFB".toColorInt()
-            isAntiAlias = true
-        }
+    fun offsetLatLng(
+        from: LatLng,
+        distanceMeters: Double,
+        bearingDegrees: Double
+    ): LatLng {
+        val radiusEarth = 6371000.0
 
-        val grayBackground = Paint().apply {
-            color = "#36454F".toColorInt()
-            isAntiAlias = true
-        }
+        val bearing = Math.toRadians(bearingDegrees)
+        val lat1 = Math.toRadians(from.latitude)
+        val lon1 = Math.toRadians(from.longitude)
 
-        val outerRectF = RectF(
-            outerRectOffset,
-            outerRectOffset,
-            totalSize - outerRectOffset,
-            totalSize - outerRectOffset
-        )
-        canvas.drawRoundRect(
-            outerRectF,
-            outerCornerRadius,
-            outerCornerRadius,
-            grayBackground
+        val lat2 = asin(sin(lat1) * cos(distanceMeters / radiusEarth) +
+                cos(lat1) * sin(distanceMeters / radiusEarth) * cos(bearing)
         )
 
-        val innerRectF = RectF(
-            innerRectOffset,
-            innerRectOffset,
-            innerRectOffset + innerRectSize,
-            innerRectOffset + innerRectSize
-        )
-        canvas.drawRoundRect(
-            innerRectF,
-            innerCornerRadius,
-            innerCornerRadius,
-            whiteBackground
+        val lon2 = lon1 + atan2(
+            sin(bearing) * sin(distanceMeters / radiusEarth) * cos(lat1),
+            cos(distanceMeters / radiusEarth) - sin(lat1) * sin(lat2)
         )
 
-        val iconDrawable = ContextCompat.getDrawable(context, iconRes)
+        return LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2))
+    }
 
-        iconDrawable?.let { icon ->
-            icon.setTint("#36454F".toColorInt())
+    fun computeBearing(from: LatLng, to: LatLng): Float {
+        val lat1 = Math.toRadians(from.latitude)
+        val lon1 = Math.toRadians(from.longitude)
+        val lat2 = Math.toRadians(to.latitude)
+        val lon2 = Math.toRadians(to.longitude)
 
-            val iconSize = 44
-            val centerX = totalSize / 2
-            val centerY = totalSize / 2
+        val dLon = lon2 - lon1
 
-            val iconLeft = centerX - iconSize / 2
-            val iconTop = centerY - iconSize / 2
-            val iconRight = iconLeft + iconSize
-            val iconBottom = iconTop + iconSize
+        val y = sin(dLon) * cos(lat2)
+        val x = (cos(lat1) * sin(lat2)) - (sin(lat1) * cos(lat2) * cos(dLon))
 
-            icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-            icon.draw(canvas)
-        }
-
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
+        return Math.toDegrees(atan2(y, x)).toFloat()
     }
 }

@@ -32,9 +32,9 @@ class MainRepositoryImpl(
             busStopResult is Result.Success && routeResult is Result.Success -> {
                 val busStops = busStopResult.data + listOf(BusStopResponseDto(
                     id = 99,
-                    name = "Halte PJS",
-                    latitude = -6.1524725,
-                    longitude = 106.717668
+                    name = "Halte Kalideres",
+                    latitude = -6.1537810,
+                    longitude = 106.7084305
                 ))
                 val routes = routeResult.data
 

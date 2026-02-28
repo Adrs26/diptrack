@@ -19,3 +19,32 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep Compose compiler generated classes
+-keep class androidx.activity.ComponentActivity { *; }
+
+# Optional: Keep ViewModels if you're using them
+-keep class * extends androidx.lifecycle.ViewModel
+
+# Keep Kotlin metadata
+-keepattributes *Annotation*, InnerClasses, EnclosingMethod, Signature, Exceptions, SourceFile, LineNumberTable, LocalVariableTable, LocalVariableTypeTable, RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, RuntimeVisibleParameterAnnotations, RuntimeInvisibleParameterAnnotations, AnnotationDefault
+
+# Keep all @Serializable classes
+-keep @kotlinx.serialization.Serializable class ** { *; }
+
+# Keep the generated serializers
+-keepnames class kotlinx.serialization.** { *; }
+
+# Prevent obfuscation of enum values
+-keepclassmembers enum * { *; }
+
+# Retain classes with reflective annotations
+-keepclassmembers class ** {
+    @kotlinx.serialization.* <fields>;
+    @kotlinx.serialization.* <methods>;
+}
+
+-dontwarn javax.annotation.Nullable
+
+-keep class com.google.android.gms.maps.** { *; }
+-keep interface com.google.android.gms.maps.** { *; }

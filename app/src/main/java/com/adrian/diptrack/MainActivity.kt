@@ -37,7 +37,10 @@ class MainActivity : ComponentActivity() {
                             viewModel.getInitialData()
                         }
                         is MainAction.StartTracking -> {
-                            viewModel.startTracking(action.destinationName, action.destinationLocation)
+                            viewModel.startTracking(
+                                action.destinationName,
+                                action.destinationLocation
+                            )
                         }
                         is MainAction.CancelTracking -> {
                             viewModel.cancelTracking()
