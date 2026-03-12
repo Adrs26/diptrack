@@ -28,31 +28,14 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     state = state,
                     sideEffect = sideEffect,
-                ) { action ->
-                    when (action) {
-                        is MainAction.AnimateToUserLocation -> {
-                            viewModel.animateToUserLocation()
-                        }
-                        is MainAction.RefreshData -> {
-                            viewModel.getInitialData()
-                        }
-                        is MainAction.StartTracking -> {
-                            viewModel.startTracking(
-                                action.destinationName,
-                                action.destinationLocation
-                            )
-                        }
-                        is MainAction.CancelTracking -> {
-                            viewModel.cancelTracking()
-                        }
-                    }
-                }
+                    onAction = viewModel::onAction
+                )
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.animateToUserLocation()
+        viewModel.onAction(MainAction.AnimateToUserLocation)
     }
 }

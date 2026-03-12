@@ -21,7 +21,8 @@ class LocalDataSource(
 
     suspend fun setCurrentBusStopId(id: Int) = preferences.setCurrentBusStopId(id)
 
-    suspend fun setCurrentBusStopLocation(location: Coordinate) = preferences.setCurrentBusStopLocation(location)
+    suspend fun setCurrentBusStopLocation(location: Coordinate) =
+        preferences.setCurrentBusStopLocation(location)
 
     suspend fun getBusStops(): List<BusStopEntity> = dao.getBusStops()
 

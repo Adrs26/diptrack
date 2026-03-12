@@ -1,7 +1,7 @@
 package com.adrian.diptrack.data.remote.source
 
-import com.adrian.diptrack.data.remote.dto.BusStopResponseDto
-import com.adrian.diptrack.data.remote.dto.RouteResponseDto
+import com.adrian.diptrack.data.remote.response.BusStopResponse
+import com.adrian.diptrack.data.remote.response.RouteResponse
 import com.adrian.diptrack.domain.common.NetworkError
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.common.Result
@@ -14,11 +14,11 @@ import kotlinx.serialization.SerializationException
 
 class RemoteDataSource(private val client: HttpClient) {
 
-    suspend fun getBusStops(): Result<List<BusStopResponseDto>, NetworkError> {
+    suspend fun getBusStops(): Result<List<BusStopResponse>, NetworkError> {
         return safeApiCall { client.get("halte") }
     }
 
-    suspend fun getRoutes(): Result<List<RouteResponseDto>, NetworkError> {
+    suspend fun getRoutes(): Result<List<RouteResponse>, NetworkError> {
         return safeApiCall { client.get("jalur") }
     }
 

@@ -5,7 +5,7 @@ import com.adrian.diptrack.data.mapper.toBusStopDomain
 import com.adrian.diptrack.data.mapper.toBusStopEntity
 import com.adrian.diptrack.data.mapper.toRouteDomain
 import com.adrian.diptrack.data.mapper.toRouteEntity
-import com.adrian.diptrack.data.remote.dto.BusStopResponseDto
+import com.adrian.diptrack.data.remote.response.BusStopResponse
 import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.common.Result
@@ -30,7 +30,7 @@ class MainRepositoryImpl(
 
         when {
             busStopResult is Result.Success && routeResult is Result.Success -> {
-                val busStops = busStopResult.data + listOf(BusStopResponseDto(
+                val busStops = busStopResult.data + listOf(BusStopResponse(
                     id = 99,
                     name = "Halte Kalideres",
                     latitude = -6.1537810,

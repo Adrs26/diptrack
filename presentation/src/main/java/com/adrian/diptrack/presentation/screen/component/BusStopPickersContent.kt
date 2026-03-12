@@ -34,7 +34,7 @@ import com.adrian.diptrack.presentation.theme.SoftWhite
 fun BusStopPickersContent(
     busStops: List<BusStop>,
     onNavigateBack: () -> Unit,
-    onBusStopSelect: (String, Coordinate) -> Unit
+    onBusStopSelect: (destinationName: String, destinationLocation: Coordinate) -> Unit
 ) {
     Scaffold(
         topBar = {

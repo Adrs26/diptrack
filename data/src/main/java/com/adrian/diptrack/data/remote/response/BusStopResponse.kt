@@ -1,10 +1,10 @@
-package com.adrian.diptrack.data.remote.dto
+package com.adrian.diptrack.data.remote.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BusStopResponseDto(
+data class BusStopResponse(
     @SerialName("id_halte")
     val id: Int,
 

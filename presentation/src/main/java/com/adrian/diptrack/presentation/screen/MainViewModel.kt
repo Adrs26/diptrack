@@ -22,7 +22,7 @@ class MainViewModel(
     private val getStaticDataUseCase: GetStaticDataUseCase,
     private val startTrackingUseCase: StartTrackingUseCase,
     private val networkStatusObserver: NetworkStatusObserver
-) : ContainerHost<MainState, MainSideEffect>, ViewModel() {
+) : ViewModel(), ContainerHost<MainState, MainSideEffect> {
 
     override val container = container<MainState, MainSideEffect>(MainState())
 
@@ -34,6 +34,15 @@ class MainViewModel(
         observeCurrentBusStop()
         getInitialData()
         animateToUserLocation()
+    }
+
+    fun onAction(action: MainAction) {
+        when (action) {
+            is MainAction.AnimateToUserLocation -> animateToUserLocation()
+            is MainAction.RefreshData -> getInitialData()
+            is MainAction.StartTracking -> startTracking(action.destinationName, action.destinationLocation)
+            is MainAction.CancelTracking -> cancelTracking()
+        }
     }
 
     private fun observeNetwork() = intent {
@@ -49,7 +58,7 @@ class MainViewModel(
         }
     }
 
-    fun getInitialData() = intent {
+    private fun getInitialData() = intent {
         reduce { state.copy(isLoading = true, error = null) }
 
         val result = when (state.currentMode) {
@@ -68,7 +77,7 @@ class MainViewModel(
         }
     }
 
-    fun animateToUserLocation() = intent {
+    private fun animateToUserLocation() = intent {
         val coordinate = getCurrentUserLocationUseCase()
         val cameraUpdate = CameraUpdateFactory
             .newLatLngZoom(LatLng(coordinate.latitude, coordinate.longitude), 16f)
@@ -76,7 +85,7 @@ class MainViewModel(
         postSideEffect(MainSideEffect.AnimateCamera(cameraUpdate))
     }
 
-    fun startTracking(destinationName: String, destinationLocation: Coordinate) = intent {
+    private fun startTracking(destinationName: String, destinationLocation: Coordinate) = intent {
         reduce { state.copy(isLoading = true, error = null) }
 
         this@MainViewModel.destinationLocation = destinationLocation
@@ -105,7 +114,7 @@ class MainViewModel(
         }
     }
 
-    fun cancelTracking() = intent {
+    private fun cancelTracking() = intent {
         reduce { state.copy(isLoading = true, error = null) }
 
         val busStops = getStaticDataUseCase().busStops
