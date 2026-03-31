@@ -88,6 +88,7 @@ fun MainContent(
                 cameraPositionState = cameraPositionState,
                 busStops = state.filteredBusStops,
                 routes = state.routes,
+                busLocations = state.busLocations,
                 isPolylinesShown = isPolylinesShown,
                 onMapLoaded = { isMapLoaded = true },
                 onBusStopMarkerClick = onBusStopMarkerClick

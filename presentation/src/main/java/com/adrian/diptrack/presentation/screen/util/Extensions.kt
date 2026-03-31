@@ -3,7 +3,9 @@ package com.adrian.diptrack.presentation.screen.util
 import com.adrian.diptrack.presentation.R
 import com.adrian.diptrack.domain.common.NetworkError
 import com.adrian.diptrack.domain.common.NetworkErrorType
+import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.presentation.common.UiText
+import com.google.android.gms.maps.model.LatLng
 
 fun NetworkError.toMessageError(): UiText {
     return when(this) {
@@ -17,3 +19,5 @@ fun NetworkError.toMessageError(): UiText {
         else -> UiText.StringResource(R.string.unknown_error)
     }
 }
+
+fun Coordinate.toLatLng() = LatLng(latitude, longitude)

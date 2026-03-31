@@ -1,5 +1,7 @@
 package com.adrian.diptrack.data.remote.source
 
+import com.adrian.diptrack.data.manager.SocketManager
+import com.adrian.diptrack.data.remote.response.BusSocketResponse
 import com.adrian.diptrack.data.remote.response.BusStopResponse
 import com.adrian.diptrack.data.remote.response.RouteResponse
 import com.adrian.diptrack.domain.common.NetworkError
@@ -10,17 +12,21 @@ import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.SerializationException
 
-class RemoteDataSource(private val client: HttpClient) {
+class RemoteDataSource(
+    private val client: HttpClient,
+    private val socketManager: SocketManager
+) {
 
-    suspend fun getBusStops(): Result<List<BusStopResponse>, NetworkError> {
-        return safeApiCall { client.get("halte") }
-    }
+    suspend fun getBusStops(): Result<List<BusStopResponse>, NetworkError> =
+        safeApiCall { client.get("halte") }
 
-    suspend fun getRoutes(): Result<List<RouteResponse>, NetworkError> {
-        return safeApiCall { client.get("jalur") }
-    }
+    suspend fun getRoutes(): Result<List<RouteResponse>, NetworkError> =
+        safeApiCall { client.get("jalur") }
+
+    fun getRealtimeBusData(): SharedFlow<BusSocketResponse> = socketManager.messages
 
     private suspend inline fun <reified T> safeApiCall(
         crossinline apiCall: suspend () -> HttpResponse

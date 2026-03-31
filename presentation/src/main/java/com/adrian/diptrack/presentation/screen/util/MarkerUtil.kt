@@ -51,28 +51,13 @@ object MarkerUtil {
             innerCircleOffset + innerCircleSize
         )
 
-        canvas.drawRoundRect(
-            outerCircleRect,
-            outerCircleRadius,
-            outerCircleRadius,
-            brownBackground
-        )
-        canvas.drawRoundRect(
-            innerCircleRect,
-            innerCircleRadius,
-            innerCircleRadius,
-            whiteBackground
-        )
+        canvas.drawRoundRect(outerCircleRect, outerCircleRadius, outerCircleRadius, brownBackground)
+        canvas.drawRoundRect(innerCircleRect, innerCircleRadius, innerCircleRadius, whiteBackground)
 
         val pointerCenterX = totalSize / 2f
         val pointerCenterY = totalSize - 2f
 
-        canvas.drawCircle(
-            pointerCenterX,
-            pointerCenterY,
-            pointerRadius,
-            brownBackground
-        )
+        canvas.drawCircle(pointerCenterX, pointerCenterY, pointerRadius, brownBackground)
 
         val iconDrawable = ContextCompat.getDrawable(context, iconRes)
 

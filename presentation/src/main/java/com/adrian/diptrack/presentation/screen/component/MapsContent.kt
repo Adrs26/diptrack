@@ -4,14 +4,17 @@ import android.Manifest
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Route
 import com.adrian.diptrack.presentation.R
-import com.adrian.diptrack.presentation.screen.handler.rememberFakeRealtimeLocation
 import com.adrian.diptrack.presentation.screen.util.MarkerUtil
+import com.adrian.diptrack.presentation.screen.util.toLatLng
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -21,8 +24,10 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberUpdatedMarkerState
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -30,16 +35,12 @@ fun MapsContent(
     cameraPositionState: CameraPositionState,
     busStops: List<BusStop>,
     routes: List<Route>,
+    busLocations: Map<Int, BusLocation>,
     isPolylinesShown: Boolean,
     onMapLoaded: () -> Unit,
     onBusStopMarkerClick: () -> Unit,
 ) {
-    val context = LocalContext.current
-
     val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
-
-    val previousLocation = LatLng(-6.155563, 106.710793)
-    val currentLocation by rememberFakeRealtimeLocation(previousLocation)
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -55,38 +56,94 @@ fun MapsContent(
         ),
         onMapLoaded = onMapLoaded
     ) {
-        busStops.forEach { busStop ->
-            val markerState = rememberUpdatedMarkerState(
-                LatLng(busStop.latitude, busStop.longitude)
-            )
+        BusStopsLayer(
+            busStops = busStops,
+            onClick = onBusStopMarkerClick
+        )
+        RoutesLayer(
+            routes = routes,
+            isShown = isPolylinesShown
+        )
+        BusLayer(busLocations = busLocations)
+    }
+}
+
+@Composable
+private fun BusStopsLayer(busStops: List<BusStop>, onClick: () -> Unit) {
+    val context = LocalContext.current
+
+    val busStopIcon = remember { MarkerUtil.createBusStopMarker(context, R.drawable.ic_store) }
+
+    busStops.forEach { busStop ->
+        Marker(
+            state = rememberUpdatedMarkerState(LatLng(busStop.latitude, busStop.longitude)),
+            icon = busStopIcon,
+            onClick = {
+                onClick()
+                true
+            }
+        )
+    }
+}
+
+@Composable
+private fun RoutesLayer(routes: List<Route>, isShown: Boolean) {
+    if (!isShown) return
+
+    routes.forEach { route ->
+        Polyline(
+            points = route.polylines.map { LatLng(it.latitude, it.longitude) },
+            width = 12f,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+private fun BusLayer(busLocations: Map<Int, BusLocation>) {
+    val busIcon = remember { MarkerUtil.createBusMarker(R.drawable.ic_bus_top_view) }
+
+    busLocations.values.forEach { busLocation ->
+        key(busLocation.id) {
+            val markerState = remember { MarkerState() }
+
+            LaunchedEffect(busLocation.currentLocation) {
+                val start = busLocation.previousLocation.toLatLng()
+                val end = busLocation.currentLocation.toLatLng()
+
+                val steps = 60
+                val delayPerStep = 10000L / steps
+
+                repeat(steps) { i ->
+                    val fraction = i / steps.toFloat()
+
+                    val lat = start.latitude + (end.latitude - start.latitude) * fraction
+                    val lng = start.longitude + (end.longitude - start.longitude) * fraction
+
+                    markerState.position = LatLng(lat, lng)
+
+                    delay(delayPerStep)
+                }
+            }
+
+            val prevLatLng = remember(busLocation.previousLocation) {
+                busLocation.previousLocation.toLatLng()
+            }
+
+            val currLatLng = remember(busLocation.currentLocation) {
+                busLocation.currentLocation.toLatLng()
+            }
+
+            val bearing = remember(prevLatLng, currLatLng) {
+                MarkerUtil.computeBearing(prevLatLng, currLatLng)
+            }
 
             Marker(
                 state = markerState,
-                icon = MarkerUtil.createBusStopMarker(context, R.drawable.ic_store),
-                onClick = {
-                    onBusStopMarkerClick()
-                    true
-                }
+                icon = busIcon,
+                flat = true,
+                rotation = bearing
             )
         }
-
-        if (isPolylinesShown) {
-            routes.forEach { route ->
-                val polylinePoints = route.polylines.map { LatLng(it.latitude, it.longitude) }
-
-                Polyline(
-                    points = polylinePoints,
-                    width = 12f,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        Marker(
-            state = rememberUpdatedMarkerState(currentLocation),
-            icon = MarkerUtil.createBusMarker(R.drawable.ic_bus_top_view),
-            flat = true,
-            rotation = MarkerUtil.computeBearing(previousLocation, currentLocation)
-        )
     }
 }

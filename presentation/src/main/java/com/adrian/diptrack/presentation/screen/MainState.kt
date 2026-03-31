@@ -2,6 +2,7 @@ package com.adrian.diptrack.presentation.screen
 
 import com.adrian.diptrack.domain.common.ModeState
 import com.adrian.diptrack.domain.common.NetworkError
+import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Route
 
@@ -10,6 +11,7 @@ data class MainState(
     val busStops: List<BusStop> = emptyList(),
     val filteredBusStops: List<BusStop> = emptyList(),
     val routes: List<Route> = emptyList(),
+    val busLocations: Map<Int, BusLocation> = emptyMap(),
     val distance: Double = 0.0,
     val originName: String = "",
     val destinationName: String = "",

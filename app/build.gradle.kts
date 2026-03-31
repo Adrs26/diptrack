@@ -60,6 +60,8 @@ dependencies {
     implementation(projects.domain)
     implementation(projects.presentation)
 
+    implementation(libs.androidx.lifecycle.process)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

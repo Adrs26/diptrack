@@ -1,8 +1,11 @@
 package com.adrian.diptrack.presentation.screen
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.adrian.diptrack.domain.common.ModeState
+import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.Coordinate
+import com.adrian.diptrack.domain.repository.MainRepository
 import com.adrian.diptrack.domain.usecase.GetCurrentBusStopUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
@@ -21,7 +24,8 @@ class MainViewModel(
     private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase,
     private val getStaticDataUseCase: GetStaticDataUseCase,
     private val startTrackingUseCase: StartTrackingUseCase,
-    private val networkStatusObserver: NetworkStatusObserver
+    private val networkStatusObserver: NetworkStatusObserver,
+    private val repository: MainRepository,
 ) : ViewModel(), ContainerHost<MainState, MainSideEffect> {
 
     override val container = container<MainState, MainSideEffect>(MainState())
@@ -74,6 +78,38 @@ class MainViewModel(
                 isLoading = false,
                 error = result.error
             )
+        }
+
+        repository.getRealtimeBusData(viewModelScope).collect { bus ->
+            val currentState = state
+            val existing = currentState.busLocations[bus.id]
+            val newLocation = Coordinate(bus.latitude, bus.longitude)
+
+            val updatedBus = if (existing != null) {
+                if (
+                    existing.currentLocation.latitude == newLocation.latitude &&
+                    existing.currentLocation.longitude == newLocation.longitude
+                ) {
+                    existing
+                } else {
+                    existing.copy(
+                        previousLocation = existing.currentLocation,
+                        currentLocation = newLocation
+                    )
+                }
+            } else {
+                BusLocation(
+                    id = bus.id,
+                    previousLocation = newLocation,
+                    currentLocation = newLocation
+                )
+            }
+
+            reduce {
+                state.copy(
+                    busLocations = state.busLocations + (bus.id to updatedBus)
+                )
+            }
         }
     }
 

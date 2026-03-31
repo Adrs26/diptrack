@@ -2,10 +2,14 @@ package com.adrian.diptrack.data.mapper
 
 import com.adrian.diptrack.data.local.database.entity.BusStopEntity
 import com.adrian.diptrack.data.local.database.entity.RouteEntity
+import com.adrian.diptrack.data.remote.response.BusSocketResponse
 import com.adrian.diptrack.data.remote.response.BusStopResponse
+import com.adrian.diptrack.data.remote.response.EtaBusStopsResponse
 import com.adrian.diptrack.data.remote.response.RouteResponse
+import com.adrian.diptrack.domain.model.BusSocket
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
+import com.adrian.diptrack.domain.model.EtaBusStops
 import com.adrian.diptrack.domain.model.Route
 import kotlinx.serialization.json.Json
 
@@ -75,3 +79,18 @@ fun RouteEntity.toRouteDomain(): Route {
         polylines = polylines
     )
 }
+
+fun BusSocketResponse.toBusSocketDomain() = BusSocket(
+    id = id,
+    latitude = latitude,
+    longitude = longitude,
+    passenger = passenger,
+    etaBusStops = etaBusStops.map { it.toEtaBusStopsDomain() }
+)
+
+private fun EtaBusStopsResponse.toEtaBusStopsDomain() = EtaBusStops(
+    id = id,
+    name = name,
+    distance = distance,
+    eta = eta
+)

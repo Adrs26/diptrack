@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.bundles.ktor)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.moko.socket.io)
     api(libs.androidx.room.ktx)
     api(libs.androidx.room.runtime)
     api(libs.compass.geolocation)

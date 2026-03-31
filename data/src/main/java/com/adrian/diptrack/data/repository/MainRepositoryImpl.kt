@@ -1,6 +1,7 @@
 package com.adrian.diptrack.data.repository
 
 import com.adrian.diptrack.data.local.source.LocalDataSource
+import com.adrian.diptrack.data.mapper.toBusSocketDomain
 import com.adrian.diptrack.data.mapper.toBusStopDomain
 import com.adrian.diptrack.data.mapper.toBusStopEntity
 import com.adrian.diptrack.data.mapper.toRouteDomain
@@ -9,12 +10,18 @@ import com.adrian.diptrack.data.remote.response.BusStopResponse
 import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.common.Result
+import com.adrian.diptrack.domain.model.BusSocket
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.model.StaticData
 import com.adrian.diptrack.domain.repository.MainRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 
 class MainRepositoryImpl(
     private val localDataSource: LocalDataSource,
@@ -35,6 +42,11 @@ class MainRepositoryImpl(
                     name = "Halte Kalideres",
                     latitude = -6.1537810,
                     longitude = 106.7084305
+                )) + listOf(BusStopResponse(
+                    id = 100,
+                    name = "Halte PJS",
+                    latitude = -6.152282,
+                    longitude = 106.7179425
                 ))
                 val routes = routeResult.data
 
@@ -65,6 +77,15 @@ class MainRepositoryImpl(
             }
         }
     }
+
+    override fun getRealtimeBusData(scope: CoroutineScope): SharedFlow<BusSocket> =
+        remoteDataSource.getRealtimeBusData()
+            .map { it.toBusSocketDomain() }
+            .shareIn(
+                scope = scope,
+                started = SharingStarted.WhileSubscribed(),
+                replay = 0
+            )
 
     override fun getCurrentBusStopId(): Flow<Int> =
         localDataSource.getCurrentBusStopId()
