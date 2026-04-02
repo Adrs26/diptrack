@@ -2,7 +2,6 @@
 activityCompose = "1.13.0"
 agp = "9.1.0"
 annotation = "1.5.1"
-compass = "3.0.2"
 composeBom = "2026.03.01"
 coreKtx = "1.18.0"
 coroutines = "1.10.2"
@@ -23,6 +22,7 @@ mokoSocketIO = "0.6.0"
 navigation = "2.9.7"
 orbit = "11.0.0"
 permissions = "0.37.3"
+playServices = "21.3.0"
 room = "2.8.4"
 
 [libraries]
@@ -48,14 +48,12 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
-compass-geolocation = { module = "dev.jordond.compass:geolocation", version.ref = "compass" }
-compass-geolocation-mobile = { module = "dev.jordond.compass:geolocation-mobile", version.ref = "compass" }
-compass-permissions-mobile = { module = "dev.jordond.compass:permissions-mobile", version.ref = "compass" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
@@ -68,6 +66,7 @@ moko-socket-io = { module = "dev.icerock.moko:socket-io", version.ref = "mokoSoc
 orbit-mvi-compose = { module = "org.orbit-mvi:orbit-compose", version.ref = "orbit" }
 orbit-mvi-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }
 orbit-mvi-viewmodel = { module = "org.orbit-mvi:orbit-viewmodel", version.ref = "orbit" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServices" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -3,8 +3,12 @@ package com.adrian.diptrack.presentation.screen.util
 import com.adrian.diptrack.presentation.R
 import com.adrian.diptrack.domain.common.NetworkError
 import com.adrian.diptrack.domain.common.NetworkErrorType
+import com.adrian.diptrack.domain.model.BusEtaInformation
+import com.adrian.diptrack.domain.model.BusStopInformation
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.presentation.common.UiText
+import com.adrian.diptrack.presentation.screen.BusEtaState
+import com.adrian.diptrack.presentation.screen.BusStopState
 import com.google.android.gms.maps.model.LatLng
 
 fun NetworkError.toMessageError(): UiText {
@@ -21,3 +25,15 @@ fun NetworkError.toMessageError(): UiText {
 }
 
 fun Coordinate.toLatLng() = LatLng(latitude, longitude)
+
+fun BusStopInformation.toBusStopState() = BusStopState(
+    busStopName = busStopName,
+    distanceKilometers = distanceKilometers,
+    busEtas = busEtas.map { it.toBusEtaState() }
+)
+
+private fun BusEtaInformation.toBusEtaState() = BusEtaState(
+    busCode = busCode,
+    numberPlate = numberPlate,
+    etaMinutes = etaMinutes
+)

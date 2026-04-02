@@ -18,12 +18,15 @@ data class BusSocketResponse(
     @SerialName("passenger_count")
     val passenger: Int,
 
+    @SerialName("nama_halte_tujuan")
+    val nextBusStopName: String,
+
     @SerialName("daftar_eta")
-    val etaBusStops: List<EtaBusStopsResponse>
+    val busStopEtas: List<BusStopEtaResponse>
 )
 
 @Serializable
-data class EtaBusStopsResponse(
+data class BusStopEtaResponse(
 
     @SerialName("halte_id")
     val id: Int,

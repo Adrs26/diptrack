@@ -1,27 +1,30 @@
 package com.adrian.diptrack.data.repository
 
 import com.adrian.diptrack.data.local.source.LocalDataSource
-import com.adrian.diptrack.data.mapper.toBusSocketDomain
+import com.adrian.diptrack.data.mapper.toBusEntity
+import com.adrian.diptrack.data.mapper.toBusEtaDomain
+import com.adrian.diptrack.data.mapper.toBusLocationDomain
 import com.adrian.diptrack.data.mapper.toBusStopDomain
 import com.adrian.diptrack.data.mapper.toBusStopEntity
+import com.adrian.diptrack.data.mapper.toBusStopEtaEntity
 import com.adrian.diptrack.data.mapper.toRouteDomain
 import com.adrian.diptrack.data.mapper.toRouteEntity
 import com.adrian.diptrack.data.remote.response.BusStopResponse
 import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.common.Result
-import com.adrian.diptrack.domain.model.BusSocket
+import com.adrian.diptrack.domain.model.BusEta
+import com.adrian.diptrack.domain.model.BusLocation
+import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.model.StaticData
 import com.adrian.diptrack.domain.repository.MainRepository
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 
 class MainRepositoryImpl(
     private val localDataSource: LocalDataSource,
@@ -31,12 +34,17 @@ class MainRepositoryImpl(
     override suspend fun getStaticData(): StaticData = coroutineScope {
         val busStopDeferred = async { remoteDataSource.getBusStops() }
         val routeDeferred = async { remoteDataSource.getRoutes() }
+        val busDeferred = async { remoteDataSource.getBuses() }
 
         val busStopResult = busStopDeferred.await()
         val routeResult = routeDeferred.await()
+        val busResult = busDeferred.await()
+
+        val allSuccess = busStopResult is Result.Success && routeResult is Result.Success &&
+                busResult is Result.Success
 
         when {
-            busStopResult is Result.Success && routeResult is Result.Success -> {
+            allSuccess -> {
                 val busStops = busStopResult.data + listOf(BusStopResponse(
                     id = 99,
                     name = "Halte Kalideres",
@@ -49,10 +57,12 @@ class MainRepositoryImpl(
                     longitude = 106.7179425
                 ))
                 val routes = routeResult.data
+                val buses = busResult.data
 
                 localDataSource.syncInitialData(
                     busStops = busStops.map { it.toBusStopEntity() },
-                    routes = routes.map { it.toRouteEntity() }
+                    routes = routes.map { it.toRouteEntity() },
+                    buses = buses.map { it.toBusEntity() }
                 )
 
                 StaticData(
@@ -71,6 +81,7 @@ class MainRepositoryImpl(
                     error = when {
                         busStopResult is Result.Error -> busStopResult.error
                         routeResult is Result.Error -> routeResult.error
+                        busResult is Result.Error -> busResult.error
                         else -> NetworkErrorType.UNKNOWN
                     }
                 )
@@ -78,14 +89,46 @@ class MainRepositoryImpl(
         }
     }
 
-    override fun getRealtimeBusData(scope: CoroutineScope): SharedFlow<BusSocket> =
-        remoteDataSource.getRealtimeBusData()
-            .map { it.toBusSocketDomain() }
-            .shareIn(
-                scope = scope,
-                started = SharingStarted.WhileSubscribed(),
-                replay = 0
-            )
+    override fun getRealtimeBusData(): Flow<List<BusLocation>> = channelFlow {
+        val lastLocations = mutableMapOf<Int, Pair<Double, Double>>()
+
+        launch {
+            remoteDataSource.getRealtimeBusData().collect { remoteData ->
+                val last = lastLocations[remoteData.id]
+
+                val prevLat = last?.first ?: remoteData.latitude
+                val prevLng = last?.second ?: remoteData.longitude
+
+                val currLat = remoteData.latitude
+                val currLng = remoteData.longitude
+
+                lastLocations[remoteData.id] = currLat to currLng
+
+                localDataSource.updateBusAndEta(
+                    busId = remoteData.id,
+                    prevLat = prevLat,
+                    prevLng = prevLng,
+                    currLat = currLat,
+                    currLng = currLng,
+                    passenger = remoteData.passenger,
+                    nextBusStopName = remoteData.nextBusStopName,
+                    etas = remoteData.busStopEtas.map { it.toBusStopEtaEntity() }
+                )
+            }
+        }
+
+        localDataSource.getBusLocations()
+            .map { list -> list.map { it.toBusLocationDomain() } }
+            .collect { send(it) }
+    }
+
+    override suspend fun getBusStopById(id: Int): BusStop =
+        localDataSource.getBusStopById(id).toBusStopDomain()
+
+    override fun getBusEtaForBusStop(busStopId: Int): Flow<List<BusEta>> =
+        localDataSource.getBusEtaForBusStop(busStopId).map { list ->
+            list.map { it.toBusEtaDomain() }
+        }
 
     override fun getCurrentBusStopId(): Flow<Int> =
         localDataSource.getCurrentBusStopId()

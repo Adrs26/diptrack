@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "bus_stop")
 data class BusStopEntity(
+
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: Int,

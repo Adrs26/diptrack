@@ -40,11 +40,11 @@ import com.google.maps.android.compose.CameraPositionState
 @Composable
 fun MainContent(
     state: MainState,
-    etaMinutes: Int,
     cameraPositionState: CameraPositionState,
     snackbarHostState: SnackbarHostState,
     isSheetVisible: Boolean,
-    onBusStopMarkerClick: () -> Unit,
+    onBusStopMarkerClick: (Int) -> Unit,
+    onBusMarkerClick: (Int) -> Unit,
     onMyLocationButtonClick: () -> Unit,
     onMainButtonClick: () -> Unit,
     onStopTrackingClick: () -> Unit,
@@ -59,8 +59,8 @@ fun MainContent(
                 currentMode = state.currentMode,
                 originName = state.originName,
                 destinationName = state.destinationName,
-                etaMinutes = etaMinutes,
-                distanceKilometers = state.distance,
+                etaMinutes = state.etaMinutes,
+                distanceKilometers = state.distanceKilometers,
                 onStopTrackingClick = onStopTrackingClick,
                 onChangeDestinationClick = onChangeDestinationClick,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -91,7 +91,8 @@ fun MainContent(
                 busLocations = state.busLocations,
                 isPolylinesShown = isPolylinesShown,
                 onMapLoaded = { isMapLoaded = true },
-                onBusStopMarkerClick = onBusStopMarkerClick
+                onBusStopMarkerClick = onBusStopMarkerClick,
+                onBusMarkerClick = onBusMarkerClick
             )
 
             if (isMapLoaded) {

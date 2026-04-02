@@ -1,15 +1,19 @@
 package com.adrian.diptrack.data.mapper
 
+import com.adrian.diptrack.data.local.database.entity.BusEntity
 import com.adrian.diptrack.data.local.database.entity.BusStopEntity
+import com.adrian.diptrack.data.local.database.entity.BusStopEtaEntity
 import com.adrian.diptrack.data.local.database.entity.RouteEntity
-import com.adrian.diptrack.data.remote.response.BusSocketResponse
+import com.adrian.diptrack.data.local.database.projection.BusLocationProjection
+import com.adrian.diptrack.data.local.database.projection.BusEtaProjection
+import com.adrian.diptrack.data.remote.response.BusResponse
+import com.adrian.diptrack.data.remote.response.BusStopEtaResponse
 import com.adrian.diptrack.data.remote.response.BusStopResponse
-import com.adrian.diptrack.data.remote.response.EtaBusStopsResponse
 import com.adrian.diptrack.data.remote.response.RouteResponse
-import com.adrian.diptrack.domain.model.BusSocket
+import com.adrian.diptrack.domain.model.BusEta
+import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.model.EtaBusStops
 import com.adrian.diptrack.domain.model.Route
 import kotlinx.serialization.json.Json
 
@@ -80,17 +84,44 @@ fun RouteEntity.toRouteDomain(): Route {
     )
 }
 
-fun BusSocketResponse.toBusSocketDomain() = BusSocket(
+fun BusResponse.toBusEntity() = BusEntity(
     id = id,
-    latitude = latitude,
-    longitude = longitude,
-    passenger = passenger,
-    etaBusStops = etaBusStops.map { it.toEtaBusStopsDomain() }
+    numberPlate = numberPlate,
+    busCode = busCode,
+    maxCapacity = capacity,
+    busType = busType,
+    status = status,
+    driverName = driverName,
+    prevLatitude = 0.0,
+    prevLongitude = 0.0,
+    currLatitude = 0.0,
+    currLongitude = 0.0,
+    passenger = 0,
+    nextBusStopName = ""
 )
 
-private fun EtaBusStopsResponse.toEtaBusStopsDomain() = EtaBusStops(
+fun BusLocationProjection.toBusLocationDomain() = BusLocation(
     id = id,
-    name = name,
+    previousLocation = Coordinate(
+        latitude = prevLatitude,
+        longitude = prevLongitude
+    ),
+    currentLocation = Coordinate(
+        latitude = currLatitude,
+        longitude = currLongitude
+    )
+)
+
+fun BusStopEtaResponse.toBusStopEtaEntity() = BusStopEtaEntity(
+    busId = 0,
+    busStopId = id,
+    busStopName = name,
     distance = distance,
+    eta = eta ?: 0
+)
+
+fun BusEtaProjection.toBusEtaDomain() = BusEta(
+    busCode = busCode,
+    numberPlate = numberPlate,
     eta = eta
 )

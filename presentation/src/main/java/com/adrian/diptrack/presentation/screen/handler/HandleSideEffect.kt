@@ -18,7 +18,8 @@ fun HandleSideEffect(
     cameraPositionState: CameraPositionState,
     snackbarHostState: SnackbarHostState,
     error: NetworkError?,
-    onRefreshFetchData: () -> Unit
+    onRefreshFetchData: () -> Unit,
+    onOpenBusStopInformationDialog: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -27,6 +28,13 @@ fun HandleSideEffect(
             when (sideEffect) {
                 is MainSideEffect.AnimateCamera -> {
                     cameraPositionState.animate(sideEffect.cameraUpdate, 1000)
+                }
+                is MainSideEffect.ShowLocationPermissionDeniedWarning -> {
+                    Toast.makeText(
+                        context,
+                        "Mohon izinkan akses lokasi untuk menggunakan aplikasi",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
                 is MainSideEffect.ShowOutsideBusStopWarning -> {
                     Toast.makeText(
@@ -42,6 +50,7 @@ fun HandleSideEffect(
                         Toast.LENGTH_LONG
                     ).show()
                 }
+                is MainSideEffect.ShowBusStopInformationDialog -> onOpenBusStopInformationDialog()
             }
         }
     }

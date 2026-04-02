@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,10 +34,11 @@ fun MapsContent(
     cameraPositionState: CameraPositionState,
     busStops: List<BusStop>,
     routes: List<Route>,
-    busLocations: Map<Int, BusLocation>,
+    busLocations: List<BusLocation>,
     isPolylinesShown: Boolean,
     onMapLoaded: () -> Unit,
-    onBusStopMarkerClick: () -> Unit,
+    onBusStopMarkerClick: (Int) -> Unit,
+    onBusMarkerClick: (Int) -> Unit
 ) {
     val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
 
@@ -64,12 +64,18 @@ fun MapsContent(
             routes = routes,
             isShown = isPolylinesShown
         )
-        BusLayer(busLocations = busLocations)
+        BusLayer(
+            busLocations = busLocations,
+            onClick = onBusMarkerClick
+        )
     }
 }
 
 @Composable
-private fun BusStopsLayer(busStops: List<BusStop>, onClick: () -> Unit) {
+private fun BusStopsLayer(
+    busStops: List<BusStop>,
+    onClick: (Int) -> Unit
+) {
     val context = LocalContext.current
 
     val busStopIcon = remember { MarkerUtil.createBusStopMarker(context, R.drawable.ic_store) }
@@ -79,7 +85,7 @@ private fun BusStopsLayer(busStops: List<BusStop>, onClick: () -> Unit) {
             state = rememberUpdatedMarkerState(LatLng(busStop.latitude, busStop.longitude)),
             icon = busStopIcon,
             onClick = {
-                onClick()
+                onClick(busStop.id)
                 true
             }
         )
@@ -100,50 +106,55 @@ private fun RoutesLayer(routes: List<Route>, isShown: Boolean) {
 }
 
 @Composable
-private fun BusLayer(busLocations: Map<Int, BusLocation>) {
+private fun BusLayer(
+    busLocations: List<BusLocation>,
+    onClick: (Int) -> Unit
+) {
     val busIcon = remember { MarkerUtil.createBusMarker(R.drawable.ic_bus_top_view) }
 
-    busLocations.values.forEach { busLocation ->
-        key(busLocation.id) {
-            val markerState = remember { MarkerState() }
+    busLocations.forEach { busLocation ->
+        val markerState = remember { MarkerState() }
 
-            LaunchedEffect(busLocation.currentLocation) {
-                val start = busLocation.previousLocation.toLatLng()
-                val end = busLocation.currentLocation.toLatLng()
+        LaunchedEffect(busLocation.currentLocation) {
+            val start = busLocation.previousLocation.toLatLng()
+            val end = busLocation.currentLocation.toLatLng()
 
-                val steps = 60
-                val delayPerStep = 10000L / steps
+            val steps = 60
+            val delayPerStep = 10000L / steps
 
-                repeat(steps) { i ->
-                    val fraction = i / steps.toFloat()
+            repeat(steps) { i ->
+                val fraction = i / steps.toFloat()
 
-                    val lat = start.latitude + (end.latitude - start.latitude) * fraction
-                    val lng = start.longitude + (end.longitude - start.longitude) * fraction
+                val lat = start.latitude + (end.latitude - start.latitude) * fraction
+                val lng = start.longitude + (end.longitude - start.longitude) * fraction
 
-                    markerState.position = LatLng(lat, lng)
+                markerState.position = LatLng(lat, lng)
 
-                    delay(delayPerStep)
-                }
+                delay(delayPerStep)
             }
-
-            val prevLatLng = remember(busLocation.previousLocation) {
-                busLocation.previousLocation.toLatLng()
-            }
-
-            val currLatLng = remember(busLocation.currentLocation) {
-                busLocation.currentLocation.toLatLng()
-            }
-
-            val bearing = remember(prevLatLng, currLatLng) {
-                MarkerUtil.computeBearing(prevLatLng, currLatLng)
-            }
-
-            Marker(
-                state = markerState,
-                icon = busIcon,
-                flat = true,
-                rotation = bearing
-            )
         }
+
+        val prevLatLng = remember(busLocation.previousLocation) {
+            busLocation.previousLocation.toLatLng()
+        }
+
+        val currLatLng = remember(busLocation.currentLocation) {
+            busLocation.currentLocation.toLatLng()
+        }
+
+        val bearing = remember(prevLatLng, currLatLng) {
+            MarkerUtil.computeBearing(prevLatLng, currLatLng)
+        }
+
+        Marker(
+            state = markerState,
+            icon = busIcon,
+            flat = true,
+            rotation = bearing,
+            onClick = {
+                onClick(busLocation.id)
+                true
+            }
+        )
     }
 }

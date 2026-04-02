@@ -3,15 +3,9 @@ package com.adrian.diptrack.presentation.screen
 import com.adrian.diptrack.domain.model.Coordinate
 
 sealed interface MainAction {
-
-    data object AnimateToUserLocation : MainAction
-
-    data object RefreshData : MainAction
-
-    data class StartTracking(
-        val destinationName: String,
-        val destinationLocation: Coordinate
-    ) : MainAction
-
-    data object CancelTracking : MainAction
+    data object OnAnimateToUserLocation : MainAction
+    data object OnRefresh : MainAction
+    data class  OnBusStopClicked(val busStopId: Int) : MainAction
+    data class  OnStartTracking(val destName: String, val destLocation: Coordinate) : MainAction
+    data object OnCancelTracking : MainAction
 }

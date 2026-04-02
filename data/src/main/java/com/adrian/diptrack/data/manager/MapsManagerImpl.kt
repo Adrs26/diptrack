@@ -1,28 +1,49 @@
 package com.adrian.diptrack.data.manager
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
+import androidx.core.app.ActivityCompat
 import com.adrian.diptrack.domain.manager.MapsManager
+import com.adrian.diptrack.domain.manager.MapsPermissionResult
 import com.adrian.diptrack.domain.model.Coordinate
-import dev.jordond.compass.Priority
-import dev.jordond.compass.geolocation.Geolocator
-import dev.jordond.compass.geolocation.GeolocatorResult
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
+import kotlinx.coroutines.tasks.await
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class MapsManagerImpl(private val geolocator: Geolocator) : MapsManager {
+class MapsManagerImpl(
+    private val context: Context,
+    private val fusedLocationClient: FusedLocationProviderClient
+) : MapsManager {
 
-    override suspend fun getCurrentUserLocation(): Coordinate {
-        return when (val result = geolocator.current(Priority.HighAccuracy)) {
-            is GeolocatorResult.Success -> {
-                Coordinate(
-                    result.data.coordinates.latitude,
-                    result.data.coordinates.longitude
-                )
+    @SuppressLint("MissingPermission")
+    override suspend fun getCurrentUserLocation(): MapsPermissionResult {
+        if (
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return MapsPermissionResult.Denied
+        }
+
+        return try {
+            val location = fusedLocationClient
+                .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                .await()
+
+            if (location != null) {
+                MapsPermissionResult.Granted(Coordinate(location.latitude, location.longitude))
+            } else {
+                MapsPermissionResult.Denied
             }
-            is GeolocatorResult.Error -> Coordinate(0.0, 0.0)
+        } catch (_: Exception) {
+            MapsPermissionResult.Denied
         }
     }
 

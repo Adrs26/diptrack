@@ -1,11 +1,12 @@
 package com.adrian.diptrack.presentation.screen
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.model.BusLocation
+import com.adrian.diptrack.domain.manager.MapsPermissionResult
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
+import com.adrian.diptrack.domain.usecase.GetBusStopInformationResult
+import com.adrian.diptrack.domain.usecase.GetBusStopInformationUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentBusStopUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
@@ -13,12 +14,14 @@ import com.adrian.diptrack.domain.usecase.GetStaticDataUseCase
 import com.adrian.diptrack.domain.usecase.StartTrackingResult
 import com.adrian.diptrack.domain.usecase.StartTrackingUseCase
 import com.adrian.diptrack.presentation.observer.NetworkStatusObserver
+import com.adrian.diptrack.presentation.screen.util.toBusStopState
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 
 class MainViewModel(
+    private val getBusStopInformationUseCase: GetBusStopInformationUseCase,
     private val getCurrentBusStopUseCase: GetCurrentBusStopUseCase,
     private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase,
@@ -36,22 +39,22 @@ class MainViewModel(
     init {
         observeNetwork()
         observeCurrentBusStop()
-        getInitialData()
-        animateToUserLocation()
+        triggerInitialData()
     }
 
     fun onAction(action: MainAction) {
         when (action) {
-            is MainAction.AnimateToUserLocation -> animateToUserLocation()
-            is MainAction.RefreshData -> getInitialData()
-            is MainAction.StartTracking -> startTracking(action.destinationName, action.destinationLocation)
-            is MainAction.CancelTracking -> cancelTracking()
+            is MainAction.OnAnimateToUserLocation -> animateToUserLocation()
+            is MainAction.OnRefresh -> triggerInitialData()
+            is MainAction.OnBusStopClicked -> getBusStopInformation(action.busStopId)
+            is MainAction.OnStartTracking -> startTracking(action.destName, action.destLocation)
+            is MainAction.OnCancelTracking -> cancelTracking()
         }
     }
 
     private fun observeNetwork() = intent {
         networkStatusObserver.isConnected.collect {
-            getInitialData()
+            triggerInitialData()
         }
     }
 
@@ -62,7 +65,7 @@ class MainViewModel(
         }
     }
 
-    private fun getInitialData() = intent {
+    private fun triggerInitialData() = intent {
         reduce { state.copy(isLoading = true, error = null) }
 
         val result = when (state.currentMode) {
@@ -80,45 +83,37 @@ class MainViewModel(
             )
         }
 
-        repository.getRealtimeBusData(viewModelScope).collect { bus ->
-            val currentState = state
-            val existing = currentState.busLocations[bus.id]
-            val newLocation = Coordinate(bus.latitude, bus.longitude)
-
-            val updatedBus = if (existing != null) {
-                if (
-                    existing.currentLocation.latitude == newLocation.latitude &&
-                    existing.currentLocation.longitude == newLocation.longitude
-                ) {
-                    existing
-                } else {
-                    existing.copy(
-                        previousLocation = existing.currentLocation,
-                        currentLocation = newLocation
-                    )
-                }
-            } else {
-                BusLocation(
-                    id = bus.id,
-                    previousLocation = newLocation,
-                    currentLocation = newLocation
-                )
-            }
-
-            reduce {
-                state.copy(
-                    busLocations = state.busLocations + (bus.id to updatedBus)
-                )
-            }
+        repository.getRealtimeBusData().collect { bus ->
+            reduce { state.copy(busLocations = bus) }
         }
     }
 
     private fun animateToUserLocation() = intent {
-        val coordinate = getCurrentUserLocationUseCase()
-        val cameraUpdate = CameraUpdateFactory
-            .newLatLngZoom(LatLng(coordinate.latitude, coordinate.longitude), 16f)
+        when (val result = getCurrentUserLocationUseCase()) {
+            is MapsPermissionResult.Denied -> {
+                postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
+            }
+            is MapsPermissionResult.Granted -> {
+                val coordinate = result.location
+                val cameraUpdate = CameraUpdateFactory
+                    .newLatLngZoom(LatLng(coordinate.latitude, coordinate.longitude), 16f)
+                postSideEffect(MainSideEffect.AnimateCamera(cameraUpdate))
+            }
+        }
+    }
 
-        postSideEffect(MainSideEffect.AnimateCamera(cameraUpdate))
+    private fun getBusStopInformation(busStopId: Int) = intent {
+        when (val result = getBusStopInformationUseCase(busStopId)) {
+            is GetBusStopInformationResult.LocationPermissionDenied -> {
+                postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
+            }
+            is GetBusStopInformationResult.Success -> {
+                result.busStopInformation.collect { busStopInformation ->
+                    reduce { state.copy(busStopState = busStopInformation.toBusStopState()) }
+                    postSideEffect(MainSideEffect.ShowBusStopInformationDialog)
+                }
+            }
+        }
     }
 
     private fun startTracking(destinationName: String, destinationLocation: Coordinate) = intent {
@@ -126,7 +121,11 @@ class MainViewModel(
 
         this@MainViewModel.destinationLocation = destinationLocation
 
-        when (val result = startTrackingUseCase(originLocation, destinationLocation)) {
+        when (val result = startTrackingUseCase(destinationLocation)) {
+            is StartTrackingResult.LocationPermissionDenied -> {
+                reduce { state.copy(isLoading = false) }
+                postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
+            }
             is StartTrackingResult.NotWithinBusStopRadius -> {
                 reduce { state.copy(isLoading = false) }
                 postSideEffect(MainSideEffect.ShowOutsideBusStopWarning)
@@ -140,7 +139,7 @@ class MainViewModel(
                     state.copy(
                         currentMode = ModeState.Wait,
                         filteredBusStops = result.filteredStops,
-                        distance = result.distance,
+                        distanceKilometers = result.distance,
                         destinationName = destinationName,
                         isLoading = false
                     )

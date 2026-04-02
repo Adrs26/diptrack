@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsBus
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.DirectionsBus
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -22,13 +22,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.adrian.diptrack.presentation.R
+import com.adrian.diptrack.presentation.screen.BusStopState
+import java.util.Locale
 
 @Composable
 fun BusStopInformationDialog(
+    state: BusStopState,
     onDismissRequest: () -> Unit
 ) {
     Dialog(
@@ -45,7 +49,7 @@ fun BusStopInformationDialog(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Text(
-                    text = "Halte Fakultas Ekonomi",
+                    text = state.busStopName,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Row(
@@ -54,7 +58,7 @@ fun BusStopInformationDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.LocationOn,
+                        imageVector = Icons.Outlined.LocationOn,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -70,11 +74,11 @@ fun BusStopInformationDialog(
                                     width = 1.dp,
                                     color = MaterialTheme.colorScheme.outline
                                 ),
-                                shape = MaterialTheme.shapes.small
+                                shape = MaterialTheme.shapes.medium
                             )
                     ) {
                         Text(
-                            text = "0.5 km",
+                            text = "${String.format(Locale.US, "%.1f", state.distanceKilometers)} km",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp)
                         )
@@ -92,11 +96,22 @@ fun BusStopInformationDialog(
                         text = "Estimasi kedatangan bus",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    repeat(2) {
-                        BusEtaInformation(
-                            numberPlate = "B1200CIA",
-                            duration = "15 mins"
+                    if (state.busEtas.isEmpty()) {
+                        Text(
+                            text = "Tidak ada bus yang tersedia untuk halte ini",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp, bottom = 8.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
                         )
+                    } else {
+                        state.busEtas.forEach {
+                            BusEtaInformation(
+                                numberPlate = "${it.busCode} (${it.numberPlate})",
+                                duration = it.etaMinutes
+                            )
+                        }
                     }
                 }
                 OutlinedButton(
@@ -125,7 +140,7 @@ fun BusStopInformationDialog(
 @Composable
 fun BusEtaInformation(
     numberPlate: String,
-    duration: String,
+    duration: Int,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -134,7 +149,7 @@ fun BusEtaInformation(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.DirectionsBus,
+            imageVector = Icons.Outlined.DirectionsBus,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary
         )
@@ -144,7 +159,7 @@ fun BusEtaInformation(
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 14.sp)
         )
         Text(
-            text = duration,
+            text = "$duration menit",
             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp)
         )
     }

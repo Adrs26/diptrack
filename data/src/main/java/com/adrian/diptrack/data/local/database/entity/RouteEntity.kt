@@ -7,6 +7,7 @@ import com.adrian.diptrack.domain.model.Coordinate
 
 @Entity(tableName = "route")
 data class RouteEntity(
+
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: Int,

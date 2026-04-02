@@ -23,18 +23,6 @@ data class BusResponse(
     @SerialName("kapasitas")
     val capacity: Int,
 
-    @SerialName("penumpang")
-    val passenger: Int,
-
-    @SerialName("latitude")
-    val latitude: Double,
-
-    @SerialName("longitude")
-    val longitude: Double,
-
-    @SerialName("next_halte_id")
-    val nextBusStopId: Int,
-
     @SerialName("nama_driver")
     val driverName: String
 )

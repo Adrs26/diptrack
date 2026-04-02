@@ -20,6 +20,7 @@ import com.adrian.diptrack.presentation.screen.component.DialogSection
 import com.adrian.diptrack.presentation.screen.component.DialogState
 import com.adrian.diptrack.presentation.screen.component.MainContent
 import com.adrian.diptrack.presentation.screen.handler.HandleMainUiState
+import com.adrian.diptrack.presentation.screen.handler.HandlePermissions
 import com.adrian.diptrack.presentation.screen.handler.HandleSideEffect
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.maps.model.CameraPosition
@@ -44,6 +45,8 @@ fun MainScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    HandlePermissions { onAction(MainAction.OnAnimateToUserLocation) }
+
     HandleMainUiState(
         currentMode = state.currentMode,
         isLoading = state.isLoading,
@@ -58,19 +61,20 @@ fun MainScreen(
         cameraPositionState = cameraPositionState,
         snackbarHostState = snackbarHostState,
         error = state.error,
-        onRefreshFetchData = { onAction(MainAction.RefreshData) }
+        onRefreshFetchData = { onAction(MainAction.OnRefresh) },
+        onOpenBusStopInformationDialog = { dialogState = DialogState.BusStopInformation }
     )
 
     MainContent(
         state = state,
-        etaMinutes = 5,
         cameraPositionState = cameraPositionState,
         snackbarHostState = snackbarHostState,
         isSheetVisible = isSheetVisible,
-        onBusStopMarkerClick = { dialogState = DialogState.BusStopInformation },
-        onMyLocationButtonClick = { onAction(MainAction.AnimateToUserLocation) },
+        onBusStopMarkerClick = { onAction(MainAction.OnBusStopClicked(it)) },
+        onBusMarkerClick = { dialogState = DialogState.BusInformation },
+        onMyLocationButtonClick = { onAction(MainAction.OnAnimateToUserLocation) },
         onMainButtonClick = { isBusStopPickersVisible = true },
-        onStopTrackingClick = { onAction(MainAction.CancelTracking) },
+        onStopTrackingClick = { onAction(MainAction.OnCancelTracking) },
         onChangeDestinationClick = { isBusStopPickersVisible = true }
     )
 
@@ -83,14 +87,15 @@ fun MainScreen(
         BusStopPickersContent(
             busStops = state.busStops,
             onNavigateBack = { isBusStopPickersVisible = false },
-            onBusStopSelect = { destinationName, destinationLocation ->
-                onAction(MainAction.StartTracking(destinationName, destinationLocation))
+            onBusStopSelect = { destName, destLocation ->
+                onAction(MainAction.OnStartTracking(destName, destLocation))
             }
         )
     }
 
     DialogSection(
         dialogState = dialogState,
+        busStopState = state.busStopState,
         onDismissRequest = { dialogState = DialogState.None }
     )
 

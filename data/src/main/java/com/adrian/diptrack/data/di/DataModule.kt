@@ -9,8 +9,7 @@ import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.data.repository.MainRepositoryImpl
 import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.repository.MainRepository
-import dev.jordond.compass.geolocation.Geolocator
-import dev.jordond.compass.geolocation.mobile
+import com.google.android.gms.location.LocationServices
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -19,7 +18,7 @@ import org.koin.dsl.module
 val Context.dataStore by preferencesDataStore("diptrack_prefs")
 
 val dataModule = module {
-    single { Geolocator.mobile() }
+    single { LocationServices.getFusedLocationProviderClient(androidContext()) }
     single { DipTrackPreferences(androidContext().dataStore) }
 
     singleOf(::LocalDataSource)

@@ -5,10 +5,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.adrian.diptrack.presentation.R
+import com.adrian.diptrack.presentation.screen.BusStopState
 
 @Composable
 fun DialogSection(
     dialogState: DialogState,
+    busStopState: BusStopState,
     onDismissRequest: () -> Unit,
 ) {
     when (dialogState) {
@@ -26,6 +28,7 @@ fun DialogSection(
         }
         DialogState.BusStopInformation -> {
             BusStopInformationDialog(
+                state = busStopState,
                 onDismissRequest = onDismissRequest
             )
         }
