@@ -15,8 +15,8 @@ class SocketManager {
     private val _messages = MutableSharedFlow<BusSocketResponse>()
     val messages = _messages.asSharedFlow()
 
-    val socket = Socket(
-        endpoint = "https://backend-bustracking.onrender.com/",
+    private val socket = Socket(
+        endpoint = "http://145.79.15.182:5000/",
         config = SocketOptions(
             queryParams = null,
             transport = SocketOptions.Transport.WEBSOCKET
@@ -32,5 +32,6 @@ class SocketManager {
     }
 
     fun connect() = socket.connect()
+
     fun disconnect() = socket.disconnect()
 }

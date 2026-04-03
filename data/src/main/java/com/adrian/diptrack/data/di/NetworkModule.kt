@@ -29,7 +29,7 @@ val networkModule = module {
                 )
             }
             defaultRequest {
-                url("https://backend-bustracking.onrender.com/api/")
+                url("http://145.79.15.182:5000/api/")
             }
         }
     }

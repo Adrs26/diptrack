@@ -7,8 +7,6 @@ import com.adrian.diptrack.domain.model.BusEtaInformation
 import com.adrian.diptrack.domain.model.BusStopInformation
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlin.math.ceil
 
 class GetBusStopInformationUseCase(
@@ -24,18 +22,17 @@ class GetBusStopInformationUseCase(
 
         val busStop = repository.getBusStopById(busStopId)
         val busStopLocation = Coordinate(busStop.latitude, busStop.longitude)
+        val busEtas = repository.getBusEtaForBusStop(busStopId)
 
         val distance = manager.calculateDistanceInKm(userLocation, busStopLocation)
 
-        val flow = repository.getBusEtaForBusStop(busStopId).map { busEtas ->
-            BusStopInformation(
-                busStopName = busStop.name,
-                distanceKilometers = distance,
-                busEtas = busEtas.map { it.toBusEtaInformation() }
-            )
-        }
+        val busStopInformation = BusStopInformation(
+            busStopName = busStop.name,
+            distanceKilometers = distance,
+            busEtas = busEtas.map { it.toBusEtaInformation() }
+        )
 
-        return GetBusStopInformationResult.Success(flow)
+        return GetBusStopInformationResult.Success(busStopInformation)
     }
 
     private fun BusEta.toBusEtaInformation() = BusEtaInformation(
@@ -47,5 +44,5 @@ class GetBusStopInformationUseCase(
 
 sealed interface GetBusStopInformationResult {
     data object LocationPermissionDenied : GetBusStopInformationResult
-    data class  Success(val busStopInformation: Flow<BusStopInformation>) : GetBusStopInformationResult
+    data class  Success(val busStopInformation: BusStopInformation) : GetBusStopInformationResult
 }

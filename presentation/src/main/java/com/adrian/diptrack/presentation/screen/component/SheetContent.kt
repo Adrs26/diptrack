@@ -37,7 +37,7 @@ fun SheetContent(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.outlineVariant
         )
-        if (currentMode == ModeState.Wait) {
+        if (currentMode is ModeState.Wait) {
             SheetBusContent(
                 modifier = Modifier.padding(vertical = 24.dp)
             )
@@ -59,7 +59,7 @@ fun SheetContent(
                 onChangeDestinationClick = onChangeDestinationClick,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
-            if (currentMode == ModeState.Wait) {
+            if (currentMode is ModeState.Wait) {
                 OutlinedButton(
                     onClick = onStopTrackingClick,
                     modifier = Modifier.fillMaxWidth(),

@@ -35,7 +35,7 @@ fun SheetRouteContent(
     onChangeDestinationClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val destinationModifier = if (currentMode == ModeState.Wait) {
+    val destinationModifier = if (currentMode is ModeState.Wait) {
         Modifier
             .clickable { onChangeDestinationClick() }
             .fillMaxWidth()
@@ -126,7 +126,7 @@ fun SheetRouteContent(
                     .weight(1f),
                 style = MaterialTheme.typography.bodyMedium
             )
-            if (currentMode == ModeState.Wait) {
+            if (currentMode is ModeState.Wait) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
                     contentDescription = null,

@@ -88,7 +88,7 @@ fun SheetModeContent(
                 currentMode = currentMode
             )
             LinearProgress(
-                status = if (currentMode == ModeState.Wait) 3 else 2,
+                status = if (currentMode is ModeState.Wait) 3 else 2,
                 modifier = Modifier.weight(1f)
             )
             ApplicationModeIcon(
@@ -97,10 +97,10 @@ fun SheetModeContent(
             )
             LinearProgress(
                 status = when (currentMode) {
-                    ModeState.Idle -> 1
-                    ModeState.Wait -> 1
-                    ModeState.Drive -> 3
-                    ModeState.Arrive -> 2
+                    is ModeState.Idle -> 1
+                    is ModeState.Wait -> 1
+                    is ModeState.Drive -> 3
+                    is ModeState.Arrive -> 2
                 },
                 modifier = Modifier.weight(1f)
             )
@@ -190,18 +190,18 @@ private fun changeIconColor(
     return when(icon) {
         Icons.Outlined.DirectionsBus -> {
             when(currentMode) {
-                ModeState.Idle -> Charcoal
-                ModeState.Wait -> Charcoal
-                ModeState.Drive -> Blue800
-                ModeState.Arrive -> Blue800
+                is ModeState.Idle -> Charcoal
+                is ModeState.Wait -> Charcoal
+                is ModeState.Drive -> Blue800
+                is ModeState.Arrive -> Blue800
             }
         }
         Icons.Outlined.Store -> {
             when(currentMode) {
-                ModeState.Idle -> Charcoal
-                ModeState.Wait -> Charcoal
-                ModeState.Drive -> Charcoal
-                ModeState.Arrive -> Blue800
+                is ModeState.Idle -> Charcoal
+                is ModeState.Wait -> Charcoal
+                is ModeState.Drive -> Charcoal
+                is ModeState.Arrive -> Blue800
             }
         }
         else -> Blue800

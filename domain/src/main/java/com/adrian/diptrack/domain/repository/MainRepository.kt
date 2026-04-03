@@ -1,6 +1,7 @@
 package com.adrian.diptrack.domain.repository
 
 import com.adrian.diptrack.domain.model.BusEta
+import com.adrian.diptrack.domain.model.BusInformation
 import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
@@ -11,11 +12,15 @@ interface MainRepository {
 
     suspend fun getStaticData(): StaticData
 
-    fun getRealtimeBusData(): Flow<List<BusLocation>>
+    fun getRealtimeBusLocation(busId: Int?): Flow<List<BusLocation>>
 
     suspend fun getBusStopById(id: Int): BusStop
 
-    fun getBusEtaForBusStop(busStopId: Int): Flow<List<BusEta>>
+    suspend fun getBusEtaForBusStop(busStopId: Int): List<BusEta>
+
+    suspend fun getBusById(id: Int): BusInformation
+
+    suspend fun getNearestAvailableBusId(busStopId: Int): Int?
 
     fun getCurrentBusStopId(): Flow<Int>
 

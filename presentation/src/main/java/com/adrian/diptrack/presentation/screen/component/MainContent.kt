@@ -66,9 +66,7 @@ fun MainContent(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         },
-        modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.navigationBars),
+        modifier = Modifier.fillMaxSize(),
         scaffoldState = rememberBottomSheetScaffoldState(
             bottomSheetState = rememberStandardBottomSheetState(
                 initialValue = if (isSheetVisible) SheetValue.PartiallyExpanded else SheetValue.Hidden,

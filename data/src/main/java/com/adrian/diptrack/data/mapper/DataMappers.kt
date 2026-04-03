@@ -11,6 +11,7 @@ import com.adrian.diptrack.data.remote.response.BusStopEtaResponse
 import com.adrian.diptrack.data.remote.response.BusStopResponse
 import com.adrian.diptrack.data.remote.response.RouteResponse
 import com.adrian.diptrack.domain.model.BusEta
+import com.adrian.diptrack.domain.model.BusInformation
 import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
@@ -124,4 +125,13 @@ fun BusEtaProjection.toBusEtaDomain() = BusEta(
     busCode = busCode,
     numberPlate = numberPlate,
     eta = eta
+)
+
+fun BusEntity.toBusInformationDomain() = BusInformation(
+    busCode = busCode,
+    numberPlate = numberPlate,
+    driverName = driverName,
+    currPassenger = passenger,
+    availPassenger = maxCapacity - passenger,
+    nextBusStopName = nextBusStopName
 )

@@ -6,6 +6,7 @@ sealed interface MainAction {
     data object OnAnimateToUserLocation : MainAction
     data object OnRefresh : MainAction
     data class  OnBusStopClicked(val busStopId: Int) : MainAction
+    data class  OnBusClicked(val busId: Int) : MainAction
     data class  OnStartTracking(val destName: String, val destLocation: Coordinate) : MainAction
     data object OnCancelTracking : MainAction
 }

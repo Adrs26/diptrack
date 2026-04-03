@@ -19,7 +19,8 @@ fun HandleSideEffect(
     snackbarHostState: SnackbarHostState,
     error: NetworkError?,
     onRefreshFetchData: () -> Unit,
-    onOpenBusStopInformationDialog: () -> Unit
+    onOpenBusStopInformationDialog: () -> Unit,
+    onOpenBusInformationDialog: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -50,7 +51,15 @@ fun HandleSideEffect(
                         Toast.LENGTH_LONG
                     ).show()
                 }
+                is MainSideEffect.ShowNoAvailableBusWarning -> {
+                    Toast.makeText(
+                        context,
+                        "Tidak ada bus yang tersedia untuk tujuan yang dipilih",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
                 is MainSideEffect.ShowBusStopInformationDialog -> onOpenBusStopInformationDialog()
+                is MainSideEffect.ShowBusInformationDialog -> onOpenBusInformationDialog()
             }
         }
     }

@@ -49,9 +49,20 @@ interface MainDao {
             prev_longitude AS prevLongitude,
             curr_latitude AS currLatitude,
             curr_longitude AS currLongitude
-        FROM bus
+        FROM bus WHERE status = 'berjalan'
     """)
     fun getBusLocations(): Flow<List<BusLocationProjection>>
+
+    @Query("""
+        SELECT 
+            id,
+            prev_latitude AS prevLatitude,
+            prev_longitude AS prevLongitude,
+            curr_latitude AS currLatitude,
+            curr_longitude AS currLongitude
+        FROM bus WHERE id = :id AND status = 'berjalan'
+    """)
+    fun getBusLocationById(id: Int): Flow<BusLocationProjection>
 
     @Transaction
     suspend fun updateBusAndEta(
@@ -64,15 +75,7 @@ interface MainDao {
         nextBusStopName: String,
         etas: List<BusStopEtaEntity>
     ) {
-        updateBusLocationAndPassenger(
-            busId,
-            prevLat,
-            prevLng,
-            currLat,
-            currLng,
-            passenger,
-            nextBusStopName
-        )
+        updateBusLocationAndPassenger(busId, prevLat, prevLng, currLat, currLng, passenger, nextBusStopName)
         deleteEtaByBusId(busId)
         insertEta(etas.map { it.copy(busId = busId) })
     }
@@ -113,7 +116,24 @@ interface MainDao {
             eta.eta AS eta
         FROM bus
         INNER JOIN bus_stop_eta AS eta
-        ON eta.bus_id = bus.id AND eta.bus_stop_id = :busStopId
+        ON eta.bus_id = bus.id AND eta.bus_stop_id = :busStopId ORDER BY eta.eta ASC
     """)
-    fun getBusEtaForBusStop(busStopId: Int): Flow<List<BusEtaProjection>>
+    suspend fun getBusEtaForBusStop(busStopId: Int): List<BusEtaProjection>
+
+    @Query("SELECT * FROM bus WHERE id = :id")
+    suspend fun getBusById(id: Int): BusEntity
+
+    @Query("SELECT id FROM bus_stop WHERE latitude = :latitude AND longitude = :longitude")
+    suspend fun getBusStopIdByLocation(latitude: Double, longitude: Double): Int
+
+    @Query("""
+        SELECT bse.bus_id
+        FROM bus_stop_eta bse
+        JOIN bus b ON b.id = bse.bus_id
+        WHERE bse.bus_stop_id = :busStopId
+          AND b.passenger < b.max_capacity
+        ORDER BY bse.eta ASC
+        LIMIT 1
+    """)
+    suspend fun getNearestAvailableBusId(busStopId: Int): Int?
 }

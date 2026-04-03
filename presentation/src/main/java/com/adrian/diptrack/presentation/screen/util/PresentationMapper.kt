@@ -4,10 +4,12 @@ import com.adrian.diptrack.presentation.R
 import com.adrian.diptrack.domain.common.NetworkError
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.model.BusEtaInformation
+import com.adrian.diptrack.domain.model.BusInformation
 import com.adrian.diptrack.domain.model.BusStopInformation
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.presentation.common.UiText
 import com.adrian.diptrack.presentation.screen.BusEtaState
+import com.adrian.diptrack.presentation.screen.BusState
 import com.adrian.diptrack.presentation.screen.BusStopState
 import com.google.android.gms.maps.model.LatLng
 
@@ -36,4 +38,13 @@ private fun BusEtaInformation.toBusEtaState() = BusEtaState(
     busCode = busCode,
     numberPlate = numberPlate,
     etaMinutes = etaMinutes
+)
+
+fun BusInformation.toBusState() = BusState(
+    busCode = busCode,
+    numberPlate = numberPlate,
+    driverName = driverName,
+    currPassenger = currPassenger,
+    availPassenger = availPassenger,
+    nextBusStopName = nextBusStopName
 )

@@ -3,6 +3,7 @@ package com.adrian.diptrack.data.repository
 import com.adrian.diptrack.data.local.source.LocalDataSource
 import com.adrian.diptrack.data.mapper.toBusEntity
 import com.adrian.diptrack.data.mapper.toBusEtaDomain
+import com.adrian.diptrack.data.mapper.toBusInformationDomain
 import com.adrian.diptrack.data.mapper.toBusLocationDomain
 import com.adrian.diptrack.data.mapper.toBusStopDomain
 import com.adrian.diptrack.data.mapper.toBusStopEntity
@@ -14,6 +15,7 @@ import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.common.Result
 import com.adrian.diptrack.domain.model.BusEta
+import com.adrian.diptrack.domain.model.BusInformation
 import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
@@ -89,7 +91,7 @@ class MainRepositoryImpl(
         }
     }
 
-    override fun getRealtimeBusData(): Flow<List<BusLocation>> = channelFlow {
+    override fun getRealtimeBusLocation(busId: Int?): Flow<List<BusLocation>> = channelFlow {
         val lastLocations = mutableMapOf<Int, Pair<Double, Double>>()
 
         launch {
@@ -117,18 +119,28 @@ class MainRepositoryImpl(
             }
         }
 
-        localDataSource.getBusLocations()
-            .map { list -> list.map { it.toBusLocationDomain() } }
-            .collect { send(it) }
+        val localFlow = if (busId == null) {
+            localDataSource.getBusLocations()
+                .map { list -> list.map { it.toBusLocationDomain() } }
+        } else {
+            localDataSource.getBusLocationById(busId)
+                .map { listOf(it.toBusLocationDomain()) }
+        }
+
+        localFlow.collect { send(it) }
     }
 
     override suspend fun getBusStopById(id: Int): BusStop =
         localDataSource.getBusStopById(id).toBusStopDomain()
 
-    override fun getBusEtaForBusStop(busStopId: Int): Flow<List<BusEta>> =
-        localDataSource.getBusEtaForBusStop(busStopId).map { list ->
-            list.map { it.toBusEtaDomain() }
-        }
+    override suspend fun getBusEtaForBusStop(busStopId: Int): List<BusEta> =
+        localDataSource.getBusEtaForBusStop(busStopId).map { it.toBusEtaDomain() }
+
+    override suspend fun getBusById(id: Int): BusInformation =
+        localDataSource.getBusById(id).toBusInformationDomain()
+
+    override suspend fun getNearestAvailableBusId(busStopId: Int): Int? =
+        localDataSource.getNearestAvailableBusId(busStopId)
 
     override fun getCurrentBusStopId(): Flow<Int> =
         localDataSource.getCurrentBusStopId()

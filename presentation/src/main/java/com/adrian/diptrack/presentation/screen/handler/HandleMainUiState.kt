@@ -15,8 +15,9 @@ fun HandleMainUiState(
 ) {
     LaunchedEffect(currentMode) {
         when (currentMode) {
-            ModeState.Idle, ModeState.Arrive -> onHideBottomSheet()
-            ModeState.Wait, ModeState.Drive -> onShowBottomSheet()
+            is ModeState.Idle, ModeState.Arrive -> onHideBottomSheet()
+            is ModeState.Wait -> onShowBottomSheet()
+            is ModeState.Drive -> onShowBottomSheet()
         }
     }
 

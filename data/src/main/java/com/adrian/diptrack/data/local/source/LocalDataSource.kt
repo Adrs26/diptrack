@@ -37,6 +37,8 @@ class LocalDataSource(
 
     fun getBusLocations(): Flow<List<BusLocationProjection>> = dao.getBusLocations()
 
+    fun getBusLocationById(id: Int): Flow<BusLocationProjection> = dao.getBusLocationById(id)
+
     suspend fun updateBusAndEta(
         busId: Int,
         prevLat: Double,
@@ -50,5 +52,13 @@ class LocalDataSource(
 
     suspend fun getBusStopById(id: Int): BusStopEntity = dao.getBusStopById(id)
 
-    fun getBusEtaForBusStop(id: Int): Flow<List<BusEtaProjection>> = dao.getBusEtaForBusStop(id)
+    suspend fun getBusEtaForBusStop(id: Int): List<BusEtaProjection> = dao.getBusEtaForBusStop(id)
+
+    suspend fun getBusById(id: Int): BusEntity = dao.getBusById(id)
+
+    suspend fun getBusStopIdByLocation(latitude: Double, longitude: Double): Int =
+        dao.getBusStopIdByLocation(latitude, longitude)
+
+    suspend fun getNearestAvailableBusId(busStopId: Int): Int? =
+        dao.getNearestAvailableBusId(busStopId)
 }

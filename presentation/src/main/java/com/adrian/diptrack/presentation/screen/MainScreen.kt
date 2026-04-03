@@ -62,7 +62,8 @@ fun MainScreen(
         snackbarHostState = snackbarHostState,
         error = state.error,
         onRefreshFetchData = { onAction(MainAction.OnRefresh) },
-        onOpenBusStopInformationDialog = { dialogState = DialogState.BusStopInformation }
+        onOpenBusStopInformationDialog = { dialogState = DialogState.BusStopInformation },
+        onOpenBusInformationDialog = { dialogState = DialogState.BusInformation }
     )
 
     MainContent(
@@ -71,7 +72,7 @@ fun MainScreen(
         snackbarHostState = snackbarHostState,
         isSheetVisible = isSheetVisible,
         onBusStopMarkerClick = { onAction(MainAction.OnBusStopClicked(it)) },
-        onBusMarkerClick = { dialogState = DialogState.BusInformation },
+        onBusMarkerClick = { onAction(MainAction.OnBusClicked(it)) },
         onMyLocationButtonClick = { onAction(MainAction.OnAnimateToUserLocation) },
         onMainButtonClick = { isBusStopPickersVisible = true },
         onStopTrackingClick = { onAction(MainAction.OnCancelTracking) },
@@ -95,6 +96,8 @@ fun MainScreen(
 
     DialogSection(
         dialogState = dialogState,
+        currentMode = state.currentMode,
+        busState = state.busState,
         busStopState = state.busStopState,
         onDismissRequest = { dialogState = DialogState.None }
     )

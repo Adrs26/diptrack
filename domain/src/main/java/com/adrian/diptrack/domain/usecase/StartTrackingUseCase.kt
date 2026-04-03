@@ -34,7 +34,10 @@ class StartTrackingUseCase(
             getFilteredBusStopsUseCase(originLocation, destinationLocation).filteredBusStops
         val distance = manager.calculateDistanceInKm(originLocation, destinationLocation)
 
-        return StartTrackingResult.Success(filteredStops, distance)
+        val currentBusStopId = repository.getCurrentBusStopId().first()
+        val busId = repository.getNearestAvailableBusId(currentBusStopId)
+
+        return StartTrackingResult.Success(busId, filteredStops, distance)
     }
 
     private suspend fun isUserWithinBusStopRadius(userLocation: Coordinate): Boolean {
@@ -73,5 +76,9 @@ sealed interface StartTrackingResult {
     data object LocationPermissionDenied : StartTrackingResult
     data object NotWithinBusStopRadius : StartTrackingResult
     data object SameBusStop : StartTrackingResult
-    data class  Success(val filteredStops: List<BusStop>, val distance: Double) : StartTrackingResult
+    data class  Success(
+        val busId: Int?,
+        val filteredStops: List<BusStop>,
+        val distance: Double
+    ) : StartTrackingResult
 }

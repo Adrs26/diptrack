@@ -22,9 +22,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.adrian.diptrack.presentation.R
+import com.adrian.diptrack.presentation.screen.BusState
 
 @Composable
 fun BusInformationDialog(
+    state: BusState,
     onDismissRequest: () -> Unit
 ) {
     Dialog(
@@ -41,10 +43,11 @@ fun BusInformationDialog(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Text(
-                    text = "Bus H1700AER",
+                    text = "${state.busCode} (${state.numberPlate})",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 DriverInformation(
+                    name = state.driverName,
                     modifier = Modifier.fillMaxWidth()
                 )
                 HorizontalDivider(
@@ -52,9 +55,11 @@ fun BusInformationDialog(
                     color = MaterialTheme.colorScheme.tertiary
                 )
                 SeatInformation(
+                    currPassenger = state.currPassenger,
+                    availPassenger = state.availPassenger,
                     modifier = Modifier.fillMaxWidth()
                 )
-                NextBusStopInformation()
+                NextBusStopInformation(busStopName = state.nextBusStopName)
                 OutlinedButton(
                     onClick = onDismissRequest,
                     modifier = Modifier
@@ -80,6 +85,7 @@ fun BusInformationDialog(
 
 @Composable
 private fun DriverInformation(
+    name: String,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -93,7 +99,7 @@ private fun DriverInformation(
             tint = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "Arif Suherman",
+            text = name,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyMedium
         )
@@ -102,6 +108,8 @@ private fun DriverInformation(
 
 @Composable
 private fun SeatInformation(
+    currPassenger: Int,
+    availPassenger: Int,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -118,7 +126,7 @@ private fun SeatInformation(
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "23",
+                text = currPassenger.toString(),
                 style = MaterialTheme.typography.titleLarge
             )
         }
@@ -131,7 +139,7 @@ private fun SeatInformation(
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "2",
+                text = availPassenger.toString(),
                 style = MaterialTheme.typography.titleLarge
             )
         }
@@ -139,7 +147,7 @@ private fun SeatInformation(
 }
 
 @Composable
-private fun NextBusStopInformation() {
+private fun NextBusStopInformation(busStopName: String) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -148,7 +156,7 @@ private fun NextBusStopInformation() {
             style = MaterialTheme.typography.bodySmall
         )
         Text(
-            text = "Halte Masjid Hijau LPPU",
+            text = busStopName,
             style = MaterialTheme.typography.bodyLarge
         )
     }
