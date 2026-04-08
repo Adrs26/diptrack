@@ -1,6 +1,6 @@
 package com.adrian.diptrack.data.di
 
-import com.adrian.diptrack.data.manager.SocketManager
+import com.adrian.diptrack.data.remote.source.SocketManager
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest

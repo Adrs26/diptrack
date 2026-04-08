@@ -9,7 +9,7 @@ data class BusResponse(
     val id: Int,
 
     @SerialName("plat_nomor")
-    val numberPlate: String,
+    val licensePlate: String,
 
     @SerialName("kode_bus")
     val busCode: String,
@@ -24,5 +24,5 @@ data class BusResponse(
     val capacity: Int,
 
     @SerialName("nama_driver")
-    val driverName: String
+    val driver: String
 )

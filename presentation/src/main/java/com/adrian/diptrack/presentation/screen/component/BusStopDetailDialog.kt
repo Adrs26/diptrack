@@ -31,7 +31,7 @@ import com.adrian.diptrack.presentation.screen.BusStopState
 import java.util.Locale
 
 @Composable
-fun BusStopInformationDialog(
+fun BusStopDetailDialog(
     state: BusStopState,
     onDismissRequest: () -> Unit
 ) {
@@ -107,8 +107,8 @@ fun BusStopInformationDialog(
                         )
                     } else {
                         state.busEtas.forEach {
-                            BusEtaInformation(
-                                numberPlate = "${it.busCode} (${it.numberPlate})",
+                            BusEtaContent(
+                                numberPlate = "${it.busCode} (${it.licensePlate})",
                                 duration = it.etaMinutes
                             )
                         }
@@ -138,7 +138,7 @@ fun BusStopInformationDialog(
 }
 
 @Composable
-fun BusEtaInformation(
+fun BusEtaContent(
     numberPlate: String,
     duration: Int,
     modifier: Modifier = Modifier

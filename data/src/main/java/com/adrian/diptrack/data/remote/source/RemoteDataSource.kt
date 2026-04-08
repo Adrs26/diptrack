@@ -1,6 +1,5 @@
 package com.adrian.diptrack.data.remote.source
 
-import com.adrian.diptrack.data.manager.SocketManager
 import com.adrian.diptrack.data.remote.response.BusResponse
 import com.adrian.diptrack.data.remote.response.BusSocketResponse
 import com.adrian.diptrack.data.remote.response.BusStopResponse
@@ -30,7 +29,11 @@ class RemoteDataSource(
     suspend fun getBuses(): Result<List<BusResponse>, NetworkError> =
         safeApiCall { client.get("bus") }
 
-    fun getRealtimeBusData(): SharedFlow<BusSocketResponse> = socketManager.messages
+    fun connectWebsocket() = socketManager.connect()
+
+    fun disconnectWebsocket() = socketManager.disconnect()
+
+    fun observeBusData(): SharedFlow<BusSocketResponse> = socketManager.messages
 
     private suspend inline fun <reified T> safeApiCall(
         crossinline apiCall: suspend () -> HttpResponse

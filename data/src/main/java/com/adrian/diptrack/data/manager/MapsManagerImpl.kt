@@ -6,8 +6,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import androidx.core.app.ActivityCompat
+import com.adrian.diptrack.domain.common.result.MapsPermissionResult
 import com.adrian.diptrack.domain.manager.MapsManager
-import com.adrian.diptrack.domain.manager.MapsPermissionResult
 import com.adrian.diptrack.domain.model.Coordinate
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority

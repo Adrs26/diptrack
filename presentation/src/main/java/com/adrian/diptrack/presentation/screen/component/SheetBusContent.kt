@@ -17,6 +17,9 @@ import com.adrian.diptrack.presentation.R
 
 @Composable
 fun SheetBusContent(
+    licensePlate: String,
+    seatFilled: Int,
+    seatAvailable: Int,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -34,7 +37,7 @@ fun SheetBusContent(
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "H1700AER",
+                text = licensePlate,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 16.sp)
@@ -51,7 +54,7 @@ fun SheetBusContent(
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "23",
+                text = seatFilled.toString(),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 16.sp)
@@ -68,7 +71,7 @@ fun SheetBusContent(
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "2",
+                text = seatAvailable.toString(),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 16.sp)

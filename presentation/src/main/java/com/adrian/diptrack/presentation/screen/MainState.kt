@@ -14,7 +14,7 @@ data class MainState(
     val routes: List<Route> = emptyList(),
     val busLocations: List<BusLocation> = emptyList(),
     val busState: BusState = BusState(),
-    val etaMinutes: Int = 0,
+    val busArrivalInfoState: BusArrivalInfoState = BusArrivalInfoState(),
     val distanceKilometers: Double = 0.0,
     val originName: String = "",
     val destinationName: String = "",
@@ -30,15 +30,22 @@ data class BusStopState(
 
 data class BusEtaState(
     val busCode: String = "",
-    val numberPlate: String = "",
+    val licensePlate: String = "",
     val etaMinutes: Int = 0
 )
 
 data class BusState(
     val busCode: String = "",
-    val numberPlate: String = "",
-    val driverName: String = "",
-    val currPassenger: Int = 0,
-    val availPassenger: Int = 0,
+    val licensePlate: String = "",
+    val driver: String = "",
+    val seatFilled: Int = 0,
+    val seatAvailable: Int = 0,
     val nextBusStopName: String = ""
+)
+
+data class BusArrivalInfoState(
+    val licensePlate: String = "",
+    val seatFilled: Int = 0,
+    val seatAvailable: Int = 0,
+    val etaMinutes: Int = 0
 )

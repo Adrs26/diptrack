@@ -62,8 +62,8 @@ fun MainScreen(
         snackbarHostState = snackbarHostState,
         error = state.error,
         onRefreshFetchData = { onAction(MainAction.OnRefresh) },
-        onOpenBusStopInformationDialog = { dialogState = DialogState.BusStopInformation },
-        onOpenBusInformationDialog = { dialogState = DialogState.BusInformation }
+        onOpenBusDetailDialog = { dialogState = DialogState.BusDetail },
+        onOpenBusStopDetailDialog = { dialogState = DialogState.BusStopDetail }
     )
 
     MainContent(

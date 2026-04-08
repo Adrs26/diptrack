@@ -11,8 +11,8 @@ data class BusEntity(
     @ColumnInfo(name = "id")
     val id: Int,
 
-    @ColumnInfo(name = "number_plate")
-    val numberPlate: String,
+    @ColumnInfo(name = "license_plate")
+    val licensePlate: String,
 
     @ColumnInfo(name = "bus_code")
     val busCode: String,
@@ -26,8 +26,8 @@ data class BusEntity(
     @ColumnInfo(name = "status")
     val status: String,
 
-    @ColumnInfo(name = "driver_name")
-    val driverName: String,
+    @ColumnInfo(name = "driver")
+    val driver: String,
 
     @ColumnInfo(name = "prev_latitude")
     val prevLatitude: Double,

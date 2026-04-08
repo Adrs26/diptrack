@@ -11,6 +11,7 @@ import com.adrian.diptrack.data.local.database.entity.BusStopEtaEntity
 import com.adrian.diptrack.data.local.database.entity.RouteEntity
 import com.adrian.diptrack.data.local.database.projection.BusEtaProjection
 import com.adrian.diptrack.data.local.database.projection.BusLocationProjection
+import com.adrian.diptrack.data.local.database.projection.BusArrivalInfoProjection
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -51,7 +52,7 @@ interface MainDao {
             curr_longitude AS currLongitude
         FROM bus WHERE status = 'berjalan'
     """)
-    fun getBusLocations(): Flow<List<BusLocationProjection>>
+    fun getActiveBusLocations(): Flow<List<BusLocationProjection>>
 
     @Query("""
         SELECT 
@@ -62,7 +63,7 @@ interface MainDao {
             curr_longitude AS currLongitude
         FROM bus WHERE id = :id AND status = 'berjalan'
     """)
-    fun getBusLocationById(id: Int): Flow<BusLocationProjection>
+    fun getActiveBusLocationById(id: Int): Flow<BusLocationProjection>
 
     @Transaction
     suspend fun updateBusAndEta(
@@ -112,7 +113,7 @@ interface MainDao {
     @Query("""
         SELECT 
             bus.bus_code AS busCode,
-            bus.number_plate AS numberPlate,
+            bus.license_plate AS licensePlate,
             eta.eta AS eta
         FROM bus
         INNER JOIN bus_stop_eta AS eta
@@ -123,17 +124,37 @@ interface MainDao {
     @Query("SELECT * FROM bus WHERE id = :id")
     suspend fun getBusById(id: Int): BusEntity
 
-    @Query("SELECT id FROM bus_stop WHERE latitude = :latitude AND longitude = :longitude")
-    suspend fun getBusStopIdByLocation(latitude: Double, longitude: Double): Int
-
     @Query("""
-        SELECT bse.bus_id
-        FROM bus_stop_eta bse
-        JOIN bus b ON b.id = bse.bus_id
+        SELECT b.id FROM bus b
+        JOIN bus_stop_eta bse ON b.id = bse.bus_id
         WHERE bse.bus_stop_id = :busStopId
           AND b.passenger < b.max_capacity
+          AND b.status = 'berjalan'
         ORDER BY bse.eta ASC
-        LIMIT 1
     """)
-    suspend fun getNearestAvailableBusId(busStopId: Int): Int?
+    fun getNearestAvailableBus(busStopId: Int): Flow<List<Int>>
+
+    @Query("""
+        SELECT bus_id
+        FROM bus_stop_eta
+        WHERE bus_stop_id = :busStopId
+        ORDER BY eta ASC
+    """)
+    fun getAllAvailableBusId(busStopId: Int): Flow<List<Int>>
+
+    @Query("""
+        SELECT 
+            b.bus_code AS busCode,
+            b.curr_latitude AS latitude,
+            b.curr_longitude AS longitude,
+            b.license_plate AS licensePlate,
+            b.max_capacity AS maxCapacity, 
+            b.passenger AS passenger,
+            bse.bus_stop_name AS busStopName,
+            bse.eta AS eta
+        FROM bus_stop_eta bse
+        JOIN bus b ON b.id = bse.bus_id
+        WHERE b.id = :busId AND bse.bus_stop_id = :busStopId
+    """)
+    fun observeBusArrivalInfo(busId: Int, busStopId: Int): Flow<BusArrivalInfoProjection?>
 }

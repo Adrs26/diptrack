@@ -1,12 +1,20 @@
 package com.adrian.diptrack.domain.usecase
 
+import com.adrian.diptrack.domain.common.ModeState
+import com.adrian.diptrack.domain.common.result.MapsPermissionResult
+import com.adrian.diptrack.domain.common.result.StartTrackingResult
 import com.adrian.diptrack.domain.manager.MapsManager
-import com.adrian.diptrack.domain.manager.MapsPermissionResult
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
+import com.adrian.diptrack.domain.model.StartTrackingSuccessData
 import com.adrian.diptrack.domain.repository.MainRepository
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.seconds
 
 class StartTrackingUseCase(
     private val manager: MapsManager,
@@ -14,38 +22,93 @@ class StartTrackingUseCase(
     private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase
 ) {
+    @OptIn(FlowPreview::class)
     suspend operator fun invoke(destinationLocation: Coordinate): StartTrackingResult {
+        if (repository.currentMode.value is ModeState.Drive) {
+            return StartTrackingResult.ChangeDestinationRejected
+        }
+
         val userLocation = when (val result = getCurrentUserLocationUseCase()) {
             is MapsPermissionResult.Denied -> return StartTrackingResult.LocationPermissionDenied
             is MapsPermissionResult.Granted -> result.location
         }
 
-        if (!isUserWithinBusStopRadius(userLocation)) {
-            return StartTrackingResult.NotWithinBusStopRadius
-        }
+        val originLocation =
+            when (val result = handleBusStopResolution(userLocation, destinationLocation)) {
+                null -> return StartTrackingResult.NotWithinBusStopRadius
+                else -> result
+            }
 
-        val originLocation = repository.getCurrentBusStopLocation().first()
         val isSameBusStop = originLocation.latitude.isCloseTo(destinationLocation.latitude) &&
                 originLocation.longitude.isCloseTo(destinationLocation.longitude)
 
         if (isSameBusStop) return StartTrackingResult.SameBusStop
 
-        val filteredStops =
-            getFilteredBusStopsUseCase(originLocation, destinationLocation).filteredBusStops
+        val currentBusStopId = repository.originBusStopId.value
+        val destinationBusStopId = repository.destinationBusStopId.value
+
+        val filteredIds = listOf(currentBusStopId, destinationBusStopId)
+        val filteredStops = getFilteredBusStopsUseCase(filteredIds).filteredBusStops
         val distance = manager.calculateDistanceInKm(originLocation, destinationLocation)
 
-        val currentBusStopId = repository.getCurrentBusStopId().first()
-        val busId = repository.getNearestAvailableBusId(currentBusStopId)
+        val busIds = withTimeoutOrNull(10.seconds) {
+            repository.observeNearestAvailableBus(currentBusStopId)
+                .debounce(1.seconds)
+                .first { it.isNotEmpty() }
+        }
 
-        return StartTrackingResult.Success(busId, filteredStops, distance)
+        return if (busIds == null) {
+            StartTrackingResult.NoAvailableBus
+        } else {
+            repository.setCurrentMode(ModeState.Idle)
+            delay(1.seconds)
+            repository.setCurrentMode(ModeState.Wait(busIds[0]))
+            repository.setCurrentBusId(busIds[0])
+            StartTrackingResult.Success(
+                StartTrackingSuccessData(
+                    busId = busIds[0],
+                    busStops = filteredStops,
+                    originBusStopId = currentBusStopId,
+                    originBusStopName =
+                        filteredStops.firstOrNull { it.id == currentBusStopId }?.name.orEmpty(),
+                    destinationBusStopId = destinationBusStopId,
+                    destinationBusStopName =
+                        filteredStops.firstOrNull { it.id == destinationBusStopId }?.name.orEmpty(),
+                    distance = distance
+                )
+            )
+        }
     }
 
-    private suspend fun isUserWithinBusStopRadius(userLocation: Coordinate): Boolean {
+    private suspend fun handleBusStopResolution(
+        userLocation: Coordinate,
+        destinationLocation: Coordinate
+    ): Coordinate? {
+
         val busStops = repository.getStaticData().busStops
+
+        val result = resolveBusStops(userLocation, destinationLocation, busStops) ?: return null
+
+        val (origin, destination) = result
+        val originLocation = Coordinate(origin.latitude, origin.longitude)
+
+        repository.setOriginBusStopId(origin.id)
+        repository.setOriginBusStopLocation(originLocation)
+        repository.setDestinationBusStopId(destination.id)
+        repository.setDestinationBusStopLocation(destinationLocation)
+
+        return originLocation
+    }
+
+    private fun resolveBusStops(
+        userLocation: Coordinate,
+        destinationLocation: Coordinate,
+        busStops: List<BusStop>
+    ): BusStopSelection? {
 
         val userCoordinate = Coordinate(userLocation.latitude, userLocation.longitude)
 
-        val matchedBusStop = busStops.firstOrNull { busStop ->
+        val originBusStop = busStops.firstOrNull { busStop ->
             val distance = manager.calculateHaversine(
                 startCoordinate = userCoordinate,
                 endCoordinate = Coordinate(busStop.latitude, busStop.longitude)
@@ -53,32 +116,20 @@ class StartTrackingUseCase(
             distance <= GEOFENCE_RADIUS_METERS
         }
 
-        return if (matchedBusStop != null) {
-            repository.setCurrentBusStopId(matchedBusStop.id)
-            repository.setCurrentBusStopLocation(
-                Coordinate(matchedBusStop.latitude, matchedBusStop.longitude)
-            )
-            true
-        } else {
-            false
-        }
+        val destinationBusStop = busStops.firstOrNull {
+            it.latitude.isCloseTo(destinationLocation.latitude) &&
+                it.longitude.isCloseTo(destinationLocation.longitude)
+        } ?: return null
+
+        return originBusStop?.let { origin -> BusStopSelection(origin, destinationBusStop) }
     }
 
     private fun Double.isCloseTo(other: Double) = abs(this - other) < EPSILON_CLOSE_RADIUS
 
-    private companion object {
-        const val GEOFENCE_RADIUS_METERS = 100f
-        const val EPSILON_CLOSE_RADIUS = 1e-6
-    }
-}
+    private data class BusStopSelection(val origin: BusStop, val destination: BusStop)
 
-sealed interface StartTrackingResult {
-    data object LocationPermissionDenied : StartTrackingResult
-    data object NotWithinBusStopRadius : StartTrackingResult
-    data object SameBusStop : StartTrackingResult
-    data class  Success(
-        val busId: Int?,
-        val filteredStops: List<BusStop>,
-        val distance: Double
-    ) : StartTrackingResult
+    private companion object {
+        private const val GEOFENCE_RADIUS_METERS = 100f
+        private const val EPSILON_CLOSE_RADIUS = 1e-6
+    }
 }

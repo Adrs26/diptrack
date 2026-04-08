@@ -17,3 +17,4 @@ data class BusStopResponse(
     @SerialName("longitude")
     val longitude: Double
 )
+

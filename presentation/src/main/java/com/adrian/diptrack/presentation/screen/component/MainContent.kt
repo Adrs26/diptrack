@@ -2,13 +2,10 @@ package com.adrian.diptrack.presentation.screen.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Route
@@ -57,10 +54,10 @@ fun MainContent(
         sheetContent = {
             SheetContent(
                 currentMode = state.currentMode,
+                state = state.busArrivalInfoState,
+                distanceKilometers = state.distanceKilometers,
                 originName = state.originName,
                 destinationName = state.destinationName,
-                etaMinutes = state.etaMinutes,
-                distanceKilometers = state.distanceKilometers,
                 onStopTrackingClick = onStopTrackingClick,
                 onChangeDestinationClick = onChangeDestinationClick,
                 modifier = Modifier.padding(horizontal = 16.dp)

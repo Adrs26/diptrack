@@ -1,4 +1,4 @@
-package com.adrian.diptrack.data.manager
+package com.adrian.diptrack.data.remote.source
 
 import com.adrian.diptrack.data.remote.response.BusSocketResponse
 import dev.icerock.moko.socket.Socket

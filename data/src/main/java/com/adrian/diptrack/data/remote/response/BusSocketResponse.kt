@@ -24,19 +24,3 @@ data class BusSocketResponse(
     @SerialName("daftar_eta")
     val busStopEtas: List<BusStopEtaResponse>
 )
-
-@Serializable
-data class BusStopEtaResponse(
-
-    @SerialName("halte_id")
-    val id: Int,
-
-    @SerialName("nama_halte")
-    val name: String,
-
-    @SerialName("distance_meters")
-    val distance: Int,
-
-    @SerialName("eta_seconds")
-    val eta: Int?
-)

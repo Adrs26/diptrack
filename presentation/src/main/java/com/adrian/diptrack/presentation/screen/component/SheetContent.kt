@@ -14,14 +14,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.adrian.diptrack.domain.common.ModeState
 import com.adrian.diptrack.presentation.R
+import com.adrian.diptrack.presentation.screen.BusArrivalInfoState
 
 @Composable
 fun SheetContent(
     currentMode: ModeState,
+    state: BusArrivalInfoState,
+    distanceKilometers: Double,
     originName: String,
     destinationName: String,
-    etaMinutes: Int,
-    distanceKilometers: Double,
     onStopTrackingClick: () -> Unit,
     onChangeDestinationClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -30,7 +31,7 @@ fun SheetContent(
         modifier = modifier.fillMaxWidth()
     ) {
         SheetModeContent(
-            etaMinutes = etaMinutes,
+            etaMinutes = state.etaMinutes,
             currentMode = currentMode
         )
         HorizontalDivider(
@@ -39,6 +40,9 @@ fun SheetContent(
         )
         if (currentMode is ModeState.Wait) {
             SheetBusContent(
+                licensePlate = state.licensePlate,
+                seatFilled = state.seatFilled,
+                seatAvailable = state.seatAvailable,
                 modifier = Modifier.padding(vertical = 24.dp)
             )
             HorizontalDivider(

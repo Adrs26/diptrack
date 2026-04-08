@@ -17,7 +17,7 @@ import com.adrian.diptrack.data.local.database.entity.RouteEntity
         BusStopEtaEntity::class,
         RouteEntity::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(RouteConverter::class)

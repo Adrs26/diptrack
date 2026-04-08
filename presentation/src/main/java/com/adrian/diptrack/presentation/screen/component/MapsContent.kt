@@ -120,7 +120,7 @@ private fun BusLayer(
             val end = busLocation.currentLocation.toLatLng()
 
             val steps = 60
-            val delayPerStep = 10000L / steps
+            val delayPerStep = 5000L / steps
 
             repeat(steps) { i ->
                 val fraction = i / steps.toFloat()

@@ -25,16 +25,16 @@ fun DialogSection(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-        DialogState.BusInformation -> {
+        DialogState.BusDetail -> {
             if (currentMode is ModeState.Wait || currentMode is ModeState.Drive) return
-            BusInformationDialog(
+            BusDetailDialog(
                 state = busState,
                 onDismissRequest = onDismissRequest
             )
         }
-        DialogState.BusStopInformation -> {
+        DialogState.BusStopDetail -> {
             if (currentMode is ModeState.Wait || currentMode is ModeState.Drive) return
-            BusStopInformationDialog(
+            BusStopDetailDialog(
                 state = busStopState,
                 onDismissRequest = onDismissRequest
             )
@@ -45,6 +45,6 @@ fun DialogSection(
 sealed class DialogState {
     data object None : DialogState()
     data object Loading : DialogState()
-    data object BusInformation : DialogState()
-    data object BusStopInformation : DialogState()
+    data object BusDetail : DialogState()
+    data object BusStopDetail : DialogState()
 }

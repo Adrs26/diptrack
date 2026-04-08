@@ -5,25 +5,12 @@ import com.adrian.diptrack.data.local.database.entity.BusEntity
 import com.adrian.diptrack.data.local.database.entity.BusStopEntity
 import com.adrian.diptrack.data.local.database.entity.BusStopEtaEntity
 import com.adrian.diptrack.data.local.database.entity.RouteEntity
-import com.adrian.diptrack.data.local.database.projection.BusLocationProjection
+import com.adrian.diptrack.data.local.database.projection.BusArrivalInfoProjection
 import com.adrian.diptrack.data.local.database.projection.BusEtaProjection
-import com.adrian.diptrack.data.local.datastore.DipTrackPreferences
-import com.adrian.diptrack.domain.model.Coordinate
+import com.adrian.diptrack.data.local.database.projection.BusLocationProjection
 import kotlinx.coroutines.flow.Flow
 
-class LocalDataSource(
-    private val preferences: DipTrackPreferences,
-    private val dao: MainDao
-) {
-
-    fun getCurrentBusStopId(): Flow<Int> = preferences.currentBusStopId
-
-    fun getCurrentBusStopLocation(): Flow<Coordinate> = preferences.currentBusStopLocation
-
-    suspend fun setCurrentBusStopId(id: Int) = preferences.setCurrentBusStopId(id)
-
-    suspend fun setCurrentBusStopLocation(location: Coordinate) =
-        preferences.setCurrentBusStopLocation(location)
+class LocalDataSource(private val dao: MainDao) {
 
     suspend fun getBusStops(): List<BusStopEntity> = dao.getBusStops()
 
@@ -35,9 +22,9 @@ class LocalDataSource(
         buses: List<BusEntity>,
     ) = dao.syncInitialData(busStops, routes, buses)
 
-    fun getBusLocations(): Flow<List<BusLocationProjection>> = dao.getBusLocations()
+    fun getActiveBusLocations(): Flow<List<BusLocationProjection>> = dao.getActiveBusLocations()
 
-    fun getBusLocationById(id: Int): Flow<BusLocationProjection> = dao.getBusLocationById(id)
+    fun getActiveBusLocationById(id: Int): Flow<BusLocationProjection> = dao.getActiveBusLocationById(id)
 
     suspend fun updateBusAndEta(
         busId: Int,
@@ -56,9 +43,11 @@ class LocalDataSource(
 
     suspend fun getBusById(id: Int): BusEntity = dao.getBusById(id)
 
-    suspend fun getBusStopIdByLocation(latitude: Double, longitude: Double): Int =
-        dao.getBusStopIdByLocation(latitude, longitude)
+    fun getNearestAvailableBus(busStopId: Int): Flow<List<Int>> = dao.getNearestAvailableBus(busStopId)
 
-    suspend fun getNearestAvailableBusId(busStopId: Int): Int? =
-        dao.getNearestAvailableBusId(busStopId)
+    fun getAllAvailableBusId(busStopId: Int): Flow<List<Int>> = dao.getAllAvailableBusId(busStopId)
+
+    fun observeBusArrivalInfo(busId: Int, busStopId: Int): Flow<BusArrivalInfoProjection?> =
+        dao.observeBusArrivalInfo(busId, busStopId)
+
 }
