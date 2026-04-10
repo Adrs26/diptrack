@@ -8,6 +8,7 @@ import com.adrian.diptrack.domain.usecase.GetCurrentBusIdUseCase
 import com.adrian.diptrack.domain.usecase.ObserveCurrentModeUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetDestinationBusStopIdUseCase
+import com.adrian.diptrack.domain.usecase.GetDestinationBusStopLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
 import com.adrian.diptrack.domain.usecase.GetOriginBusStopIdUseCase
 import com.adrian.diptrack.domain.usecase.ObserveBusLocationUseCase
@@ -25,6 +26,7 @@ val domainModule = module {
     factoryOf(::GetCurrentBusIdUseCase)
     factoryOf(::GetCurrentUserLocationUseCase)
     factoryOf(::GetDestinationBusStopIdUseCase)
+    factoryOf(::GetDestinationBusStopLocationUseCase)
     factoryOf(::GetFilteredBusStopsUseCase)
     factoryOf(::GetOriginBusStopIdUseCase)
     factoryOf(::GetStaticDataUseCase)

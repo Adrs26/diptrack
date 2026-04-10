@@ -2,20 +2,27 @@ package com.adrian.diptrack.domain.usecase
 
 import com.adrian.diptrack.domain.common.ModeState
 import com.adrian.diptrack.domain.common.result.CheckTrackingStatusResult
+import com.adrian.diptrack.domain.common.result.MapsPermissionResult
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
 import kotlin.math.abs
 
 class CheckTrackingStatusUseCase(
-    private val repository: MainRepository
+    private val repository: MainRepository,
+    private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
 ) {
-    operator fun invoke(busLocation: Coordinate, seatAvailable: Int, eta: Int): CheckTrackingStatusResult {
-//        val userLocation = when (val result = getCurrentUserLocationUseCase()) {
-//            is MapsPermissionResult.Denied -> return CheckTrackingStatusResult.LocationPermissionDenied
-//            is MapsPermissionResult.Granted -> result.location
-//        }
-//
-//        if (!userLocation.isNear(busLocation)) return CheckTrackingStatusResult.SwitchToIdle
+    suspend operator fun invoke(busLocation: Coordinate, seatAvailable: Int, eta: Int): CheckTrackingStatusResult {
+        val userLocation = when (val result = getCurrentUserLocationUseCase()) {
+            is MapsPermissionResult.Denied -> return CheckTrackingStatusResult.LocationPermissionDenied
+            is MapsPermissionResult.Granted -> result.location
+        }
+
+        when (repository.currentMode.value) {
+            is ModeState.Drive -> {
+                if (!userLocation.isNear(busLocation)) return CheckTrackingStatusResult.SwitchToIdle
+            }
+            else -> Unit
+        }
 
         if (seatAvailable == 0) return CheckTrackingStatusResult.BusFull
 

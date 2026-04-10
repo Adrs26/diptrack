@@ -9,6 +9,7 @@ sealed class MainSideEffect {
     data object ShowOutsideBusStopWarning : MainSideEffect()
     data object ShowSameBusStopWarning : MainSideEffect()
     data object ShowNoAvailableBusWarning : MainSideEffect()
+    data object ShowBusFullWarning : MainSideEffect()
     data object ShowBusStopDetailDialog : MainSideEffect()
     data object ShowBusDetailDialog : MainSideEffect()
     data object ShowCancelTrackingNotification : MainSideEffect()

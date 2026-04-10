@@ -14,6 +14,7 @@ import com.adrian.diptrack.domain.usecase.GetBusStopDetailUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentBusIdUseCase
 import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetDestinationBusStopIdUseCase
+import com.adrian.diptrack.domain.usecase.GetDestinationBusStopLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
 import com.adrian.diptrack.domain.usecase.GetOriginBusStopIdUseCase
 import com.adrian.diptrack.domain.usecase.GetStaticDataUseCase
@@ -40,6 +41,7 @@ class MainViewModel(
     private val getCurrentBusIdUseCase: GetCurrentBusIdUseCase,
     private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getDestinationBusStopIdUseCase: GetDestinationBusStopIdUseCase,
+    private val getDestinationBusStopLocationUseCase: GetDestinationBusStopLocationUseCase,
     private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase,
     private val getOriginBusStopIdUseCase: GetOriginBusStopIdUseCase,
     private val getStaticDataUseCase: GetStaticDataUseCase,
@@ -131,7 +133,8 @@ class MainViewModel(
                             postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
                         }
                         is CheckTrackingStatusResult.BusFull -> {
-//                            postSideEffect(MainSideEffect.ShowBusFullWarning)
+                            startTrackingUseCase(getDestinationBusStopLocationUseCase())
+                            postSideEffect(MainSideEffect.ShowBusFullWarning)
                         }
                         is CheckTrackingStatusResult.SwitchToIdle -> {
                             postSideEffect(MainSideEffect.ShowCancelTrackingNotification)

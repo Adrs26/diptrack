@@ -54,6 +54,9 @@ fun HandleSideEffect(
                 is MainSideEffect.ShowNoAvailableBusWarning -> {
                     context.showToast("Tidak ada bus yang tersedia untuk halte ini")
                 }
+                is MainSideEffect.ShowBusFullWarning -> {
+                    context.showToast("Bus penuh, rekomendasi telah diperbarui")
+                }
                 is MainSideEffect.ShowBusStopDetailDialog -> onOpenBusStopDetailDialog()
                 is MainSideEffect.ShowBusDetailDialog -> onOpenBusDetailDialog()
                 is MainSideEffect.ShowCancelTrackingNotification -> {

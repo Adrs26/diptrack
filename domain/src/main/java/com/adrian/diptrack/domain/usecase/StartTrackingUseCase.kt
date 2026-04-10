@@ -11,7 +11,7 @@ import com.adrian.diptrack.domain.repository.MainRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
@@ -54,7 +54,7 @@ class StartTrackingUseCase(
         val busIds = withTimeoutOrNull(10.seconds) {
             repository.observeNearestAvailableBus(currentBusStopId)
                 .debounce(1.seconds)
-                .first { it.isNotEmpty() }
+                .firstOrNull { it.isNotEmpty() }
         }
 
         return if (busIds == null) {
