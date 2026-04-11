@@ -25,16 +25,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.adrian.diptrack.domain.model.BusStop
-import com.adrian.diptrack.domain.model.Coordinate
+import com.adrian.diptrack.data.local.entity.BusStopEntity
+import com.adrian.diptrack.data.common.model.Coordinate
 import com.adrian.diptrack.presentation.theme.SoftWhite
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BusStopPickersContent(
-    busStops: List<BusStop>,
+    busStops: List<BusStopEntity>,
     onNavigateBack: () -> Unit,
-    onBusStopSelect: (destinationName: String, destinationLocation: Coordinate) -> Unit
+    onBusStopSelect: (Coordinate) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -82,10 +82,7 @@ fun BusStopPickersContent(
                     busStopName = busStop.name,
                     modifier = Modifier
                         .clickable {
-                            onBusStopSelect(
-                                busStop.name,
-                                Coordinate(busStop.latitude, busStop.longitude)
-                            )
+                            onBusStopSelect(Coordinate(busStop.latitude, busStop.longitude))
                             onNavigateBack()
                         }
                         .padding(horizontal = 16.dp, vertical = 12.dp)

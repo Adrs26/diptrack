@@ -23,7 +23,7 @@ mokoSocketIO = "0.6.0"
 navigation = "2.9.7"
 orbit = "11.0.0"
 permissions = "0.37.3"
-playServices = "21.3.0"
+playServicesLocation = "21.3.0"
 room = "2.8.4"
 
 [libraries]
@@ -69,7 +69,7 @@ moko-socket-io = { module = "dev.icerock.moko:socket-io", version.ref = "mokoSoc
 orbit-mvi-compose = { module = "org.orbit-mvi:orbit-compose", version.ref = "orbit" }
 orbit-mvi-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }
 orbit-mvi-viewmodel = { module = "org.orbit-mvi:orbit-viewmodel", version.ref = "orbit" }
-play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServices" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

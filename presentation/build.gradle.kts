@@ -35,7 +35,7 @@ android {
 }
 
 dependencies {
-    implementation(projects.domain)
+    implementation(projects.data)
 
     implementation(libs.accompanist.permissions)
     implementation(libs.maps.compose)

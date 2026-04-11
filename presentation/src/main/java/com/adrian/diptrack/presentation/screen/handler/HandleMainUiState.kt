@@ -2,7 +2,7 @@ package com.adrian.diptrack.presentation.screen.handler
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.adrian.diptrack.domain.common.ModeState
+import com.adrian.diptrack.data.common.ModeState
 
 @Composable
 fun HandleMainUiState(

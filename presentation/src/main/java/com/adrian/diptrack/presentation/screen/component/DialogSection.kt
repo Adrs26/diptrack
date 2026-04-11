@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.adrian.diptrack.domain.common.ModeState
+import com.adrian.diptrack.data.common.ModeState
 import com.adrian.diptrack.presentation.R
 import com.adrian.diptrack.presentation.screen.BusState
 import com.adrian.diptrack.presentation.screen.BusStopState

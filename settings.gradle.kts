@@ -26,6 +26,5 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "DipTrack"
 include(":app")
-include(":domain")
 include(":data")
 include(":presentation")

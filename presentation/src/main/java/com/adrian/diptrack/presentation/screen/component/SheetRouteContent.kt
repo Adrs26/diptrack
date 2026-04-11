@@ -23,7 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.adrian.diptrack.domain.common.ModeState
+import com.adrian.diptrack.data.common.ModeState
 import java.util.Locale
 
 @Composable

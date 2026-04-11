@@ -1,7 +1,7 @@
 package com.adrian.diptrack.data.di
 
 import androidx.room.Room
-import com.adrian.diptrack.data.local.database.DipTrackDatabase
+import com.adrian.diptrack.data.local.DipTrackDatabase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 

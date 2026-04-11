@@ -12,8 +12,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.adrian.diptrack.domain.common.NetworkError
-import com.adrian.diptrack.domain.common.NetworkErrorType
+import com.adrian.diptrack.data.remote.source.NetworkError
+import com.adrian.diptrack.data.remote.source.NetworkErrorType
 import com.adrian.diptrack.presentation.R
 import com.adrian.diptrack.presentation.screen.MainSideEffect
 import com.adrian.diptrack.presentation.service.TrackingService.Companion.NOTIFICATION_CHANNEL_ID

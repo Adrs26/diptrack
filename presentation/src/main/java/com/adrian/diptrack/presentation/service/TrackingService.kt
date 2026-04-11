@@ -9,9 +9,8 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.repository.MainRepository
-import com.adrian.diptrack.domain.usecase.ObserveBusArrivalInfoUseCase
+import com.adrian.diptrack.data.common.ModeState
+import com.adrian.diptrack.data.repository.MainRepository
 import com.adrian.diptrack.presentation.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,11 +21,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.math.ceil
 
 class TrackingService : Service(), KoinComponent {
 
     private val repository by inject<MainRepository>()
-    private val observeBusArrivalInfoUseCase by inject<ObserveBusArrivalInfoUseCase>()
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -85,14 +84,17 @@ class TrackingService : Service(), KoinComponent {
                     val destinationId = repository.destinationBusStopId.value
 
                     when (mode) {
-                        is ModeState.Idle, ModeState.Arrive -> observeBusArrivalInfoUseCase(0, 0)
-                        is ModeState.Wait -> observeBusArrivalInfoUseCase(busId, originId)
-                        is ModeState.Drive -> observeBusArrivalInfoUseCase(busId, destinationId)
+                        is ModeState.Idle, ModeState.Arrive -> repository.observeBusArrivalInfo(0, 0)
+                        is ModeState.Wait -> repository.observeBusArrivalInfo(busId, originId)
+                        is ModeState.Drive -> repository.observeBusArrivalInfo(busId, destinationId)
                     }
                 }
                 .collect { busArrivalInfo ->
                     busArrivalInfo?.let { busArrivalInfo ->
-                        updateNotification(busArrivalInfo.busStopName, busArrivalInfo.etaMinutes)
+                        updateNotification(
+                            busArrivalInfo.busStopName,
+                            ceil(busArrivalInfo.eta / 60.0).toInt()
+                        )
                     }
                 }
         }

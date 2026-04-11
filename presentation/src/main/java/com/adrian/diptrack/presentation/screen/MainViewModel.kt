@@ -1,27 +1,13 @@
 package com.adrian.diptrack.presentation.screen
 
 import androidx.lifecycle.ViewModel
-import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.common.result.CheckTrackingStatusResult
-import com.adrian.diptrack.domain.common.result.GetBusStopDetailResult
-import com.adrian.diptrack.domain.common.result.MapsPermissionResult
-import com.adrian.diptrack.domain.common.result.StartTrackingResult
-import com.adrian.diptrack.domain.model.Coordinate
-import com.adrian.diptrack.domain.usecase.CancelTrackingUseCase
-import com.adrian.diptrack.domain.usecase.CheckTrackingStatusUseCase
-import com.adrian.diptrack.domain.usecase.GetBusDetailUseCase
-import com.adrian.diptrack.domain.usecase.GetBusStopDetailUseCase
-import com.adrian.diptrack.domain.usecase.GetCurrentBusIdUseCase
-import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
-import com.adrian.diptrack.domain.usecase.GetDestinationBusStopIdUseCase
-import com.adrian.diptrack.domain.usecase.GetDestinationBusStopLocationUseCase
-import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
-import com.adrian.diptrack.domain.usecase.GetOriginBusStopIdUseCase
-import com.adrian.diptrack.domain.usecase.GetStaticDataUseCase
-import com.adrian.diptrack.domain.usecase.ObserveBusArrivalInfoUseCase
-import com.adrian.diptrack.domain.usecase.ObserveBusLocationUseCase
-import com.adrian.diptrack.domain.usecase.ObserveCurrentModeUseCase
-import com.adrian.diptrack.domain.usecase.StartTrackingUseCase
+import com.adrian.diptrack.data.common.ModeState
+import com.adrian.diptrack.data.common.result.CheckTrackingStatusResult
+import com.adrian.diptrack.data.common.result.GetBusStopDetailResult
+import com.adrian.diptrack.data.common.result.MapsPermissionResult
+import com.adrian.diptrack.data.common.result.StartTrackingResult
+import com.adrian.diptrack.data.common.model.Coordinate
+import com.adrian.diptrack.data.repository.MainRepository
 import com.adrian.diptrack.presentation.observer.NetworkStatusObserver
 import com.adrian.diptrack.presentation.screen.util.toState
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -32,24 +18,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.container
+import kotlin.math.ceil
 
 class MainViewModel(
-    private val cancelTrackingUseCase: CancelTrackingUseCase,
-    private val checkTrackingStatusUseCase: CheckTrackingStatusUseCase,
-    private val getBusDetailUseCase: GetBusDetailUseCase,
-    private val getBusStopDetailUseCase: GetBusStopDetailUseCase,
-    private val getCurrentBusIdUseCase: GetCurrentBusIdUseCase,
-    private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
-    private val getDestinationBusStopIdUseCase: GetDestinationBusStopIdUseCase,
-    private val getDestinationBusStopLocationUseCase: GetDestinationBusStopLocationUseCase,
-    private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase,
-    private val getOriginBusStopIdUseCase: GetOriginBusStopIdUseCase,
-    private val getStaticDataUseCase: GetStaticDataUseCase,
-    private val observeBusArrivalInfoUseCase: ObserveBusArrivalInfoUseCase,
-    private val observeBusLocationUseCase: ObserveBusLocationUseCase,
-    private val observeCurrentModeUseCase: ObserveCurrentModeUseCase,
-    private val startTrackingUseCase: StartTrackingUseCase,
-    private val networkStatusObserver: NetworkStatusObserver
+    private val networkObserver: NetworkStatusObserver,
+    private val repository: MainRepository
 ) : ViewModel(), ContainerHost<MainState, MainSideEffect> {
 
     override val container = container<MainState, MainSideEffect>(MainState())
@@ -70,19 +43,19 @@ class MainViewModel(
             is MainAction.OnRefresh -> triggerInitialData()
             is MainAction.OnBusStopClicked -> getBusStopDetail(action.busStopId)
             is MainAction.OnBusClicked -> getBusDetail(action.busId)
-            is MainAction.OnStartTracking -> startTracking(action.destLocation)
+            is MainAction.OnStartTracking -> startTracking(action.destinationLocation)
             is MainAction.OnCancelTracking -> cancelTracking()
         }
     }
 
     private fun observeNetwork() = intent {
-        networkStatusObserver.isConnected.collect {
+        networkObserver.isConnected.collect {
             triggerInitialData()
         }
     }
 
     private fun observeCurrentMode() = intent {
-        observeCurrentModeUseCase().collect { mode ->
+        repository.currentMode.collect { mode ->
             reduce { state.copy(currentMode = mode) }
         }
     }
@@ -94,9 +67,9 @@ class MainViewModel(
             .distinctUntilChanged()
             .flatMapLatest { mode ->
                 when (mode) {
-                    is ModeState.Idle, ModeState.Arrive -> observeBusLocationUseCase(null)
-                    is ModeState.Wait -> observeBusLocationUseCase(mode.busId)
-                    is ModeState.Drive -> observeBusLocationUseCase(mode.busId)
+                    is ModeState.Idle, ModeState.Arrive -> repository.observeBusLocation(null)
+                    is ModeState.Wait -> repository.observeBusLocation(mode.busId)
+                    is ModeState.Drive -> repository.observeBusLocation(mode.busId)
                 }
             }
             .collect { busLocations ->
@@ -110,22 +83,22 @@ class MainViewModel(
             .map { it.currentMode }
             .distinctUntilChanged()
             .flatMapLatest { mode ->
-                val busId = getCurrentBusIdUseCase()
-                val originId = getOriginBusStopIdUseCase()
-                val destinationId = getDestinationBusStopIdUseCase()
+                val busId = repository.currentBusId.value
+                val originId = repository.originBusStopId.value
+                val destinationId = repository.destinationBusStopId.value
 
                 when (mode) {
-                    is ModeState.Idle, ModeState.Arrive -> observeBusArrivalInfoUseCase(0, 0)
-                    is ModeState.Wait -> observeBusArrivalInfoUseCase(busId, originId)
-                    is ModeState.Drive -> observeBusArrivalInfoUseCase(busId, destinationId)
+                    is ModeState.Idle, ModeState.Arrive -> repository.observeBusArrivalInfo(0, 0)
+                    is ModeState.Wait -> repository.observeBusArrivalInfo(busId, originId)
+                    is ModeState.Drive -> repository.observeBusArrivalInfo(busId, destinationId)
                 }
             }
             .collect { busArrivalInfo ->
                 busArrivalInfo?.let { busArrivalInfo ->
-                    val result = checkTrackingStatusUseCase(
-                        busArrivalInfo.location,
-                        busArrivalInfo.seatAvailable,
-                        busArrivalInfo.etaMinutes
+                    val result = repository.checkTrackingStatus(
+                        busLocation = Coordinate(busArrivalInfo.latitude, busArrivalInfo.longitude),
+                        seatAvailable = busArrivalInfo.maxCapacity - busArrivalInfo.passenger,
+                        eta = ceil(busArrivalInfo.eta / 60.0).toInt()
                     )
 
                     when (result) {
@@ -133,7 +106,7 @@ class MainViewModel(
                             postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
                         }
                         is CheckTrackingStatusResult.BusFull -> {
-                            startTrackingUseCase(getDestinationBusStopLocationUseCase())
+                            startTracking(repository.destinationBusStopLocation.value)
                             postSideEffect(MainSideEffect.ShowBusFullWarning)
                         }
                         is CheckTrackingStatusResult.SwitchToIdle -> {
@@ -158,8 +131,8 @@ class MainViewModel(
         reduce { state.copy(isLoading = true, error = null) }
 
         val result = when (state.currentMode) {
-            is ModeState.Idle, ModeState.Arrive -> getStaticDataUseCase()
-            else -> getFilteredBusStopsUseCase(busStopIds)
+            is ModeState.Idle, ModeState.Arrive -> repository.getStaticData()
+            else -> repository.getFilteredBusStops(busStopIds)
         }
 
         reduce {
@@ -174,7 +147,7 @@ class MainViewModel(
     }
 
     private fun animateToUserLocation() = intent {
-        when (val result = getCurrentUserLocationUseCase()) {
+        when (val result = repository.getCurrentUserLocation()) {
             is MapsPermissionResult.Denied -> {
                 postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
             }
@@ -188,13 +161,13 @@ class MainViewModel(
     }
 
     private fun getBusDetail(busId: Int) = intent {
-        val busDetail = getBusDetailUseCase(busId)
+        val busDetail = repository.getBusById(busId)
         reduce { state.copy(busState = busDetail.toState()) }
         postSideEffect(MainSideEffect.ShowBusDetailDialog)
     }
 
     private fun getBusStopDetail(busStopId: Int) = intent {
-        when (val result = getBusStopDetailUseCase(busStopId)) {
+        when (val result = repository.getBusStopDetail(busStopId)) {
             is GetBusStopDetailResult.LocationPermissionDenied -> {
                 postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
             }
@@ -208,7 +181,7 @@ class MainViewModel(
     private fun startTracking(destinationLocation: Coordinate) = intent {
         reduce { state.copy(isLoading = true, error = null) }
 
-        when (val result = startTrackingUseCase(destinationLocation)) {
+        when (val result = repository.startTracking(destinationLocation)) {
             is StartTrackingResult.LocationPermissionDenied -> {
                 postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
             }
@@ -247,7 +220,7 @@ class MainViewModel(
     private fun cancelTracking() = intent {
         reduce { state.copy(isLoading = true, error = null) }
 
-        val busStops = cancelTrackingUseCase()
+        val busStops = repository.cancelTracking()
 
         reduce {
             state.copy(

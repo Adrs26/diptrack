@@ -8,9 +8,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.adrian.diptrack.domain.model.BusLocation
-import com.adrian.diptrack.domain.model.BusStop
-import com.adrian.diptrack.domain.model.Route
+import com.adrian.diptrack.data.local.entity.BusStopEntity
+import com.adrian.diptrack.data.local.entity.RouteEntity
+import com.adrian.diptrack.data.local.projection.BusLocationProjection
+import com.adrian.diptrack.data.common.model.Coordinate
 import com.adrian.diptrack.presentation.R
 import com.adrian.diptrack.presentation.screen.util.MarkerUtil
 import com.adrian.diptrack.presentation.screen.util.toLatLng
@@ -32,9 +33,9 @@ import kotlinx.coroutines.delay
 @Composable
 fun MapsContent(
     cameraPositionState: CameraPositionState,
-    busStops: List<BusStop>,
-    routes: List<Route>,
-    busLocations: List<BusLocation>,
+    busStops: List<BusStopEntity>,
+    routes: List<RouteEntity>,
+    busLocations: List<BusLocationProjection>,
     isPolylinesShown: Boolean,
     onMapLoaded: () -> Unit,
     onBusStopMarkerClick: (Int) -> Unit,
@@ -73,7 +74,7 @@ fun MapsContent(
 
 @Composable
 private fun BusStopsLayer(
-    busStops: List<BusStop>,
+    busStops: List<BusStopEntity>,
     onClick: (Int) -> Unit
 ) {
     val context = LocalContext.current
@@ -93,7 +94,7 @@ private fun BusStopsLayer(
 }
 
 @Composable
-private fun RoutesLayer(routes: List<Route>, isShown: Boolean) {
+private fun RoutesLayer(routes: List<RouteEntity>, isShown: Boolean) {
     if (!isShown) return
 
     routes.forEach { route ->
@@ -107,17 +108,23 @@ private fun RoutesLayer(routes: List<Route>, isShown: Boolean) {
 
 @Composable
 private fun BusLayer(
-    busLocations: List<BusLocation>,
+    busLocations: List<BusLocationProjection>,
     onClick: (Int) -> Unit
 ) {
     val busIcon = remember { MarkerUtil.createBusMarker(R.drawable.ic_bus_top_view) }
 
     busLocations.forEach { busLocation ->
         val markerState = remember { MarkerState() }
+        val previousLocation = remember(busLocation.prevLatitude, busLocation.prevLongitude) {
+            Coordinate(busLocation.prevLatitude, busLocation.prevLongitude)
+        }
+        val currentLocation = remember(busLocation.currLatitude, busLocation.currLongitude) {
+            Coordinate(busLocation.currLatitude, busLocation.currLongitude)
+        }
 
-        LaunchedEffect(busLocation.currentLocation) {
-            val start = busLocation.previousLocation.toLatLng()
-            val end = busLocation.currentLocation.toLatLng()
+        LaunchedEffect(previousLocation) {
+            val start = previousLocation.toLatLng()
+            val end = currentLocation.toLatLng()
 
             val steps = 60
             val delayPerStep = 5000L / steps
@@ -134,13 +141,8 @@ private fun BusLayer(
             }
         }
 
-        val prevLatLng = remember(busLocation.previousLocation) {
-            busLocation.previousLocation.toLatLng()
-        }
-
-        val currLatLng = remember(busLocation.currentLocation) {
-            busLocation.currentLocation.toLatLng()
-        }
+        val prevLatLng = remember(previousLocation) { previousLocation.toLatLng() }
+        val currLatLng = remember(currentLocation) { currentLocation.toLatLng() }
 
         val bearing = remember(prevLatLng, currLatLng) {
             MarkerUtil.computeBearing(prevLatLng, currLatLng)

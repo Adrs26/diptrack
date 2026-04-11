@@ -4,9 +4,6 @@ import com.adrian.diptrack.data.remote.response.BusResponse
 import com.adrian.diptrack.data.remote.response.BusSocketResponse
 import com.adrian.diptrack.data.remote.response.BusStopResponse
 import com.adrian.diptrack.data.remote.response.RouteResponse
-import com.adrian.diptrack.domain.common.NetworkError
-import com.adrian.diptrack.domain.common.NetworkErrorType
-import com.adrian.diptrack.domain.common.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException

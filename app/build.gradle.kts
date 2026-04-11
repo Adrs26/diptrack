@@ -10,9 +10,7 @@ plugins {
 val localProps = Properties()
 val localPropertiesFile = File(rootProject.rootDir, "secret.properties")
 if (localPropertiesFile.exists() && localPropertiesFile.isFile) {
-    localPropertiesFile.inputStream().use {
-        localProps.load(it)
-    }
+    localPropertiesFile.inputStream().use { localProps.load(it) }
 }
 
 android {
@@ -57,10 +55,7 @@ android {
 
 dependencies {
     implementation(projects.data)
-    implementation(projects.domain)
     implementation(projects.presentation)
-
-    implementation(libs.androidx.lifecycle.process)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

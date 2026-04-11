@@ -3,7 +3,6 @@ package com.adrian.diptrack
 import android.app.Application
 import com.adrian.diptrack.data.di.dataModule
 import com.adrian.diptrack.data.di.databaseModule
-import com.adrian.diptrack.data.di.domainModule
 import com.adrian.diptrack.data.di.networkModule
 import com.adrian.diptrack.presentation.di.viewModelModule
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +25,6 @@ class MainApplication : Application() {
                 listOf(
                     databaseModule,
                     dataModule,
-                    domainModule,
                     networkModule,
                     viewModelModule
                 )

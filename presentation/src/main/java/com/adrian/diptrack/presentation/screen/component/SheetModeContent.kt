@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.adrian.diptrack.domain.common.ModeState
+import com.adrian.diptrack.data.common.ModeState
 import com.adrian.diptrack.presentation.theme.Blue800
 import com.adrian.diptrack.presentation.theme.Charcoal
 

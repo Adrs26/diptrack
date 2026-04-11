@@ -33,8 +33,6 @@ android {
 }
 
 dependencies {
-    implementation(projects.domain)
-
     implementation(libs.androidx.annotation.experimental)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.bundles.ktor)
@@ -49,6 +47,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

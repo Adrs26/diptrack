@@ -1,18 +1,18 @@
 package com.adrian.diptrack.presentation.screen
 
-import com.adrian.diptrack.domain.common.ModeState
-import com.adrian.diptrack.domain.common.NetworkError
-import com.adrian.diptrack.domain.model.BusLocation
-import com.adrian.diptrack.domain.model.BusStop
-import com.adrian.diptrack.domain.model.Route
+import com.adrian.diptrack.data.common.ModeState
+import com.adrian.diptrack.data.local.entity.BusStopEntity
+import com.adrian.diptrack.data.local.entity.RouteEntity
+import com.adrian.diptrack.data.local.projection.BusLocationProjection
+import com.adrian.diptrack.data.remote.source.NetworkError
 
 data class MainState(
     val currentMode: ModeState = ModeState.Idle,
-    val busStops: List<BusStop> = emptyList(),
-    val filteredBusStops: List<BusStop> = emptyList(),
+    val busStops: List<BusStopEntity> = emptyList(),
+    val filteredBusStops: List<BusStopEntity> = emptyList(),
     val busStopState: BusStopState = BusStopState(),
-    val routes: List<Route> = emptyList(),
-    val busLocations: List<BusLocation> = emptyList(),
+    val routes: List<RouteEntity> = emptyList(),
+    val busLocations: List<BusLocationProjection> = emptyList(),
     val busState: BusState = BusState(),
     val busArrivalInfoState: BusArrivalInfoState = BusArrivalInfoState(),
     val distanceKilometers: Double = 0.0,

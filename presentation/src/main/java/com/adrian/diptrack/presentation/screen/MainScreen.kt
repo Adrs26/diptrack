@@ -88,9 +88,7 @@ fun MainScreen(
         BusStopPickersContent(
             busStops = state.busStops,
             onNavigateBack = { isBusStopPickersVisible = false },
-            onBusStopSelect = { destName, destLocation ->
-                onAction(MainAction.OnStartTracking(destName, destLocation))
-            }
+            onBusStopSelect = { onAction(MainAction.OnStartTracking(it)) }
         )
     }
 
