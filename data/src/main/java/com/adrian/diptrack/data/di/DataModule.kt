@@ -1,10 +1,9 @@
 package com.adrian.diptrack.data.di
 
 import com.adrian.diptrack.data.local.source.LocalDataSource
-import com.adrian.diptrack.data.manager.MapsManagerImpl
+import com.adrian.diptrack.data.manager.MapsManager
 import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.data.repository.MainRepositoryImpl
-import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.repository.MainRepository
 import com.google.android.gms.location.LocationServices
 import org.koin.android.ext.koin.androidContext
@@ -17,6 +16,6 @@ val dataModule = module {
 
     singleOf(::LocalDataSource)
     singleOf(::RemoteDataSource)
-    singleOf(::MapsManagerImpl).bind(MapsManager::class)
+    singleOf(::MapsManager)
     singleOf(::MainRepositoryImpl).bind(MainRepository::class)
 }

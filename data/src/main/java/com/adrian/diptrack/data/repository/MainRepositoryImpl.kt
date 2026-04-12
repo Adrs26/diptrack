@@ -1,6 +1,7 @@
 package com.adrian.diptrack.data.repository
 
 import com.adrian.diptrack.data.local.source.LocalDataSource
+import com.adrian.diptrack.data.manager.MapsManager
 import com.adrian.diptrack.data.mapper.toDomain
 import com.adrian.diptrack.data.mapper.toEntity
 import com.adrian.diptrack.data.remote.response.BusStopResponse
@@ -8,6 +9,7 @@ import com.adrian.diptrack.data.remote.source.RemoteDataSource
 import com.adrian.diptrack.domain.common.ModeState
 import com.adrian.diptrack.domain.common.NetworkErrorType
 import com.adrian.diptrack.domain.common.Result
+import com.adrian.diptrack.domain.common.result.MapsPermissionResult
 import com.adrian.diptrack.domain.model.BusArrivalInfo
 import com.adrian.diptrack.domain.model.BusDetail
 import com.adrian.diptrack.domain.model.BusEta
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class MainRepositoryImpl(
+    private val manager: MapsManager,
     private val localDataSource: LocalDataSource,
     private val remoteDataSource: RemoteDataSource,
 ) : MainRepository {
@@ -78,6 +81,19 @@ class MainRepositoryImpl(
     override fun setPreviousEta(eta: Int) {
         _previousEta.value = eta
     }
+
+    override suspend fun getCurrentUserLocation(): MapsPermissionResult =
+        manager.getCurrentUserLocation()
+
+    override fun calculateHaversine(
+        startCoordinate: Coordinate,
+        endCoordinate: Coordinate
+    ): Float = manager.calculateHaversine(startCoordinate, endCoordinate)
+
+    override fun calculateDistanceInKm(
+        startCoordinate: Coordinate,
+        endCoordinate: Coordinate
+    ): Double = manager.calculateDistanceInKm(startCoordinate, endCoordinate)
 
     override suspend fun getStaticData(): StaticData = coroutineScope {
         val busStopDeferred = async { remoteDataSource.getBusStops() }

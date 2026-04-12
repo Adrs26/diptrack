@@ -7,12 +7,9 @@ import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
 import kotlin.math.abs
 
-class CheckTrackingStatusUseCase(
-    private val repository: MainRepository,
-    private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
-) {
+class CheckTrackingStatusUseCase(private val repository: MainRepository) {
     suspend operator fun invoke(busLocation: Coordinate, seatAvailable: Int, eta: Int): CheckTrackingStatusResult {
-        val userLocation = when (val result = getCurrentUserLocationUseCase()) {
+        val userLocation = when (val result = repository.getCurrentUserLocation()) {
             is MapsPermissionResult.Denied -> return CheckTrackingStatusResult.LocationPermissionDenied
             is MapsPermissionResult.Granted -> result.location
         }

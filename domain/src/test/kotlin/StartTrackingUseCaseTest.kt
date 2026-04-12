@@ -1,18 +1,18 @@
 import com.adrian.diptrack.domain.common.ModeState
 import com.adrian.diptrack.domain.common.result.MapsPermissionResult
 import com.adrian.diptrack.domain.common.result.StartTrackingResult
-import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.model.StaticData
 import com.adrian.diptrack.domain.repository.MainRepository
-import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import com.adrian.diptrack.domain.usecase.GetFilteredBusStopsUseCase
 import com.adrian.diptrack.domain.usecase.StartTrackingUseCase
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -23,92 +23,140 @@ import org.junit.Test
 
 class StartTrackingUseCaseTest {
 
-    private val manager = mockk<MapsManager>(relaxed = true)
-    private val repository = mockk<MainRepository>(relaxed = true)
-    private val getCurrentUserLocationUseCase = mockk<GetCurrentUserLocationUseCase>()
-    private val getFilteredBusStopsUseCase = mockk<GetFilteredBusStopsUseCase>()
-
+    private lateinit var repository: MainRepository
+    private lateinit var getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase
     private lateinit var useCase: StartTrackingUseCase
 
-    private val userLocation = Coordinate(1.0, 1.0)
-    private val destinationLocation = Coordinate(2.0, 2.0)
-
-    private val originBusStop = BusStop(1, "Origin", 1.0, 1.0)
-    private val destinationBusStop = BusStop(2, "Destination", 2.0, 2.0)
-
+    private val userLocation = Coordinate(-6.9932, 110.4203)
+    private val originBusStop = BusStop(
+        id = 1,
+        name = "Halte Widya Puraya",
+        latitude = -6.9932,
+        longitude = 110.4203
+    )
+    private val destinationBusStop = BusStop(
+        id = 2,
+        name = "Halte Teknik",
+        latitude = -6.9945,
+        longitude = 110.4230
+    )
+    private val destinationLocation = Coordinate(destinationBusStop.latitude, destinationBusStop.longitude)
+    private val sameBusStopLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
+    private val busStops = listOf(originBusStop, destinationBusStop)
+    private val filteredBusStops = listOf(originBusStop, destinationBusStop)
     private val staticData = StaticData(
-        busStops = listOf(originBusStop, destinationBusStop),
-        filteredBusStops = listOf(originBusStop, destinationBusStop),
+        busStops = busStops,
+        filteredBusStops = filteredBusStops,
         routes = emptyList(),
         error = null
     )
+    private val busIds = listOf(101)
+    private val distanceKm = 1.2
+    private val filteredIds = listOf(1, 2)
 
     @Before
-    fun setup() {
-        useCase = StartTrackingUseCase(manager, repository, getCurrentUserLocationUseCase, getFilteredBusStopsUseCase)
+    fun setUp() {
+        repository = mockk()
+        getFilteredBusStopsUseCase = mockk()
+        useCase = StartTrackingUseCase(repository, getFilteredBusStopsUseCase)
 
         every { repository.currentMode } returns MutableStateFlow(ModeState.Idle)
-        every { repository.originBusStopId } returns MutableStateFlow(1)
-        every { repository.destinationBusStopId } returns MutableStateFlow(2)
-        coEvery { repository.getStaticData() } returns staticData
-
-        every { manager.calculateHaversine(any(), any()) } returns 0.0F
-        every { manager.calculateDistanceInKm(any(), any()) } returns 5.0
-
-        coEvery { getCurrentUserLocationUseCase() } returns MapsPermissionResult.Granted(userLocation)
-        coEvery { getFilteredBusStopsUseCase(any()) } returns staticData
+        every { repository.originBusStopId } returns MutableStateFlow(originBusStop.id)
+        every { repository.destinationBusStopId } returns MutableStateFlow(destinationBusStop.id)
     }
 
     @Test
-    fun `SUCCESS when all conditions met`() = runTest {
-        val flow = flowOf(listOf(10))
+    fun `invoke returns Success when all conditions are met`() = runTest {
+        val originLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
 
-        every { repository.observeNearestAvailableBus(any()) } returns flow
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getStaticData() } returns staticData
+        coEvery { repository.calculateHaversine(userLocation, originLocation) } returns 50f
+        coEvery { repository.setOriginBusStopId(originBusStop.id) } just Runs
+        coEvery { repository.setOriginBusStopLocation(any()) } just Runs
+        coEvery { repository.setDestinationBusStopId(destinationBusStop.id) } just Runs
+        coEvery { repository.setDestinationBusStopLocation(destinationLocation) } just Runs
+        coEvery { repository.calculateDistanceInKm(any(), destinationLocation) } returns distanceKm
+        coEvery { repository.observeNearestAvailableBus(originBusStop.id) } returns flowOf(busIds)
+        coEvery { repository.setCurrentMode(ModeState.Idle) } just Runs
+        coEvery { repository.setCurrentMode(ModeState.Wait(busIds[0])) } just Runs
+        coEvery { repository.setCurrentBusId(busIds[0]) } just Runs
+        coEvery { getFilteredBusStopsUseCase(filteredIds) } returns staticData
 
         val result = useCase(destinationLocation)
-
         assertTrue(result is StartTrackingResult.Success)
 
-        verify { repository.setCurrentMode(ModeState.Idle) }
-        verify { repository.setCurrentMode(match { it is ModeState.Wait }) }
-        verify { repository.setCurrentBusId(10) }
+        val success = result as StartTrackingResult.Success
+        assertEquals(busIds[0], success.data.busId)
+        assertEquals(originBusStop.id, success.data.originBusStopId)
+        assertEquals(destinationBusStop.id, success.data.destinationBusStopId)
+        assertEquals(distanceKm, success.data.distance, 0.001)
     }
 
     @Test
-    fun `FAIL when location permission denied`() = runTest {
-        coEvery { getCurrentUserLocationUseCase() } returns MapsPermissionResult.Denied
+    fun `invoke returns LocationPermissionDenied when location permission is denied`() = runTest {
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Denied
+
+        val result = useCase(destinationLocation)
+        assertTrue(result is StartTrackingResult.LocationPermissionDenied)
+
+        coVerify(exactly = 0) { repository.getStaticData() }
+        coVerify(exactly = 0) { getFilteredBusStopsUseCase(any()) }
+        coVerify(exactly = 0) { repository.observeNearestAvailableBus(any()) }
+    }
+
+    @Test
+    fun `invoke returns NotWithinBusStopRadius when user is not within any bus stop radius`() = runTest {
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getStaticData() } returns staticData
+        coEvery { repository.calculateHaversine(any(), any()) } returns 200f
 
         val result = useCase(destinationLocation)
 
-        assertEquals(StartTrackingResult.LocationPermissionDenied, result)
+        assertTrue(result is StartTrackingResult.NotWithinBusStopRadius)
+
+        coVerify(exactly = 0) { getFilteredBusStopsUseCase(any()) }
+        coVerify(exactly = 0) { repository.observeNearestAvailableBus(any()) }
     }
 
     @Test
-    fun `FAIL when user not in bus stop radius`() = runTest {
-        every { manager.calculateHaversine(any(), any()) } returns 999.0f
+    fun `invoke returns SameBusStop when destination is the same as origin bus stop`() = runTest {
+        val originLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
+
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getStaticData() } returns staticData
+        coEvery { repository.calculateHaversine(userLocation, originLocation) } returns 50f
+        coEvery { repository.setOriginBusStopId(originBusStop.id) } just Runs
+        coEvery { repository.setOriginBusStopLocation(any()) } just Runs
+        coEvery { repository.setDestinationBusStopId(originBusStop.id) } just Runs
+        coEvery { repository.setDestinationBusStopLocation(sameBusStopLocation) } just Runs
+
+        val result = useCase(sameBusStopLocation)
+        assertTrue(result is StartTrackingResult.SameBusStop)
+
+        coVerify(exactly = 0) { getFilteredBusStopsUseCase(any()) }
+        coVerify(exactly = 0) { repository.observeNearestAvailableBus(any()) }
+    }
+
+    @Test
+    fun `invoke returns NoAvailableBus when no active bus is available within timeout`() = runTest {
+        val originLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
+
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getStaticData() } returns staticData
+        coEvery { repository.calculateHaversine(userLocation, originLocation) } returns 50f
+        coEvery { repository.setOriginBusStopId(originBusStop.id) } just Runs
+        coEvery { repository.setOriginBusStopLocation(any()) } just Runs
+        coEvery { repository.setDestinationBusStopId(destinationBusStop.id) } just Runs
+        coEvery { repository.setDestinationBusStopLocation(destinationLocation) } just Runs
+        coEvery { repository.calculateDistanceInKm(any(), destinationLocation) } returns distanceKm
+        coEvery { repository.observeNearestAvailableBus(originBusStop.id) } returns flowOf(emptyList())
+        coEvery { getFilteredBusStopsUseCase(filteredIds) } returns staticData
 
         val result = useCase(destinationLocation)
+        assertTrue(result is StartTrackingResult.NoAvailableBus)
 
-        assertEquals(StartTrackingResult.NotWithinBusStopRadius, result)
-    }
-
-    @Test
-    fun `FAIL when origin and destination are same`() = runTest {
-        val sameLocation = Coordinate(1.0, 1.0)
-
-        val result = useCase(sameLocation)
-
-        assertEquals(StartTrackingResult.SameBusStop, result)
-    }
-
-    @Test
-    fun `FAIL when no available bus`() = runTest {
-        val emptyFlow = flowOf(emptyList<Int>())
-
-        every { repository.observeNearestAvailableBus(any()) } returns emptyFlow
-
-        val result = useCase(destinationLocation)
-
-        assertEquals(StartTrackingResult.NoAvailableBus, result)
+        coVerify(exactly = 0) { repository.setCurrentMode(any()) }
+        coVerify(exactly = 0) { repository.setCurrentBusId(any()) }
     }
 }

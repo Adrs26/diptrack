@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import androidx.core.app.ActivityCompat
 import com.adrian.diptrack.domain.common.result.MapsPermissionResult
-import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.Coordinate
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
@@ -18,13 +17,13 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class MapsManagerImpl(
+class MapsManager(
     private val context: Context,
     private val fusedLocationClient: FusedLocationProviderClient
-) : MapsManager {
+) {
 
     @SuppressLint("MissingPermission")
-    override suspend fun getCurrentUserLocation(): MapsPermissionResult {
+    suspend fun getCurrentUserLocation(): MapsPermissionResult {
         if (
             ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) !=
             PackageManager.PERMISSION_GRANTED
@@ -47,10 +46,7 @@ class MapsManagerImpl(
         }
     }
 
-    override fun calculateHaversine(
-        startCoordinate: Coordinate,
-        endCoordinate: Coordinate
-    ): Float {
+    fun calculateHaversine(startCoordinate: Coordinate, endCoordinate: Coordinate): Float {
         val results = FloatArray(1)
         Location.distanceBetween(
             startCoordinate.latitude,
@@ -62,10 +58,7 @@ class MapsManagerImpl(
         return results[0]
     }
 
-    override fun calculateDistanceInKm(
-        startCoordinate: Coordinate,
-        endCoordinate: Coordinate
-    ): Double {
+    fun calculateDistanceInKm(startCoordinate: Coordinate, endCoordinate: Coordinate): Double {
         val earthRadiusKm = 6371.0
 
         val dLat = Math.toRadians(endCoordinate.latitude - startCoordinate.latitude)

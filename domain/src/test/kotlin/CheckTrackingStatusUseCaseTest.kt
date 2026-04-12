@@ -4,124 +4,147 @@ import com.adrian.diptrack.domain.common.result.MapsPermissionResult
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
 import com.adrian.diptrack.domain.usecase.CheckTrackingStatusUseCase
-import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 class CheckTrackingStatusUseCaseTest {
 
-    private val repository = mockk<MainRepository>(relaxed = true)
-    private val getCurrentUserLocationUseCase = mockk<GetCurrentUserLocationUseCase>()
-
+    private lateinit var repository: MainRepository
     private lateinit var useCase: CheckTrackingStatusUseCase
 
-    private val busId = 1
-    private val userLocation = Coordinate(1.0, 1.0)
-    private val nearLocation = Coordinate(1.0, 1.0)
-    private val farLocation = Coordinate(2.0, 2.0)
+    private val originBusStopLocation = Coordinate(-6.9932, 110.4203)
+    private val destinationBusStopLocation = Coordinate(-6.9945, 110.4230)
+    private val awayFromBusStopLocation = Coordinate(-6.9800, 110.4100)
+    private val currentBusId = 101
+    private val seatAvailable = 10
+    private val validEta = 3
+    private val previousEta = 3
 
     @Before
-    fun setup() {
-        useCase = CheckTrackingStatusUseCase(repository, getCurrentUserLocationUseCase)
+    fun setUp() {
+        repository = mockk()
+        useCase = CheckTrackingStatusUseCase(repository)
+    }
 
-        coEvery { getCurrentUserLocationUseCase.invoke() } returns MapsPermissionResult.Granted(userLocation)
-
+    @Test
+    fun `invoke in Wait mode returns SwitchToDrive when bus arrives at origin bus stop`() = runTest {
+        every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(currentBusId))
         every { repository.previousEta } returns MutableStateFlow(0)
-        every { repository.currentBusId } returns MutableStateFlow(busId)
-    }
-
-    @Test
-    fun `WAIT to DRIVE when bus arrives at origin`() = runTest {
-        every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(busId))
-        every { repository.originBusStopLocation } returns MutableStateFlow(nearLocation)
+        every { repository.originBusStopLocation } returns MutableStateFlow(originBusStopLocation)
+        every { repository.currentBusId } returns MutableStateFlow(currentBusId)
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(originBusStopLocation)
+        coEvery { repository.setCurrentMode(ModeState.Drive(currentBusId)) } just Runs
+        coEvery { repository.setPreviousEta(0) } just Runs
 
         val result = useCase(
-            busLocation = nearLocation,
-            seatAvailable = 5,
-            eta = 10
+            busLocation = originBusStopLocation,
+            seatAvailable = seatAvailable,
+            eta = validEta
         )
 
-        assertEquals(CheckTrackingStatusResult.SwitchToDrive, result)
-        verify { repository.setCurrentMode(match { it is ModeState.Drive }) }
-        verify { repository.setPreviousEta(0) }
+        assertTrue(result is CheckTrackingStatusResult.SwitchToDrive)
+        coVerify(exactly = 1) { repository.setCurrentMode(ModeState.Drive(currentBusId)) }
+        coVerify(exactly = 1) { repository.setPreviousEta(0) }
     }
 
     @Test
-    fun `WAIT to BUS FULL`() = runTest {
-        every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(busId))
+    fun `invoke in Wait mode returns BusFull when seat available is zero`() = runTest {
+        every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(currentBusId))
+        every { repository.previousEta } returns MutableStateFlow(0)
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(originBusStopLocation)
 
         val result = useCase(
-            busLocation = nearLocation,
+            busLocation = awayFromBusStopLocation,
             seatAvailable = 0,
-            eta = 10
+            eta = validEta
         )
 
-        assertEquals(CheckTrackingStatusResult.BusFull, result)
+        assertTrue(result is CheckTrackingStatusResult.BusFull)
+        coVerify(exactly = 0) { repository.setCurrentMode(any()) }
+        coVerify(exactly = 0) { repository.setPreviousEta(any()) }
     }
 
     @Test
-    fun `WAIT to CONTINUE when bus not at origin`() = runTest {
-        every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(busId))
-        every { repository.originBusStopLocation } returns MutableStateFlow(nearLocation)
+    fun `invoke in Wait mode returns Continue when bus has not arrived at origin bus stop`() = runTest {
+        every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(currentBusId))
+        every { repository.previousEta } returns MutableStateFlow(previousEta)
+        every { repository.originBusStopLocation } returns MutableStateFlow(originBusStopLocation)
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(originBusStopLocation)
+        coEvery { repository.setPreviousEta(validEta) } just Runs
 
         val result = useCase(
-            busLocation = farLocation,
-            seatAvailable = 5,
-            eta = 10
+            busLocation = awayFromBusStopLocation,
+            seatAvailable = seatAvailable,
+            eta = validEta
         )
 
-        assertEquals(CheckTrackingStatusResult.Continue, result)
-        verify { repository.setPreviousEta(10) }
+        assertTrue(result is CheckTrackingStatusResult.Continue)
+        coVerify(exactly = 1) { repository.setPreviousEta(validEta) }
+        coVerify(exactly = 0) { repository.setCurrentMode(any()) }
     }
 
     @Test
-    fun `DRIVE to ARRIVE when reach destination`() = runTest {
-        every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(busId))
-        every { repository.destinationBusStopLocation } returns MutableStateFlow(nearLocation)
+    fun `invoke in Drive mode returns SwitchToArrive when bus arrives at destination bus stop`() = runTest {
+        every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(currentBusId))
+        every { repository.previousEta } returns MutableStateFlow(0)
+        every { repository.destinationBusStopLocation } returns MutableStateFlow(destinationBusStopLocation)
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(destinationBusStopLocation)
+        coEvery { repository.setCurrentMode(ModeState.Idle) } just Runs
+        coEvery { repository.setPreviousEta(0) } just Runs
 
         val result = useCase(
-            busLocation = nearLocation,
-            seatAvailable = 5,
-            eta = 10
+            busLocation = destinationBusStopLocation,
+            seatAvailable = seatAvailable,
+            eta = validEta
         )
 
-        assertEquals(CheckTrackingStatusResult.SwitchToArrive, result)
-        verify { repository.setCurrentMode(ModeState.Idle) }
-        verify { repository.setPreviousEta(0) }
+        assertTrue(result is CheckTrackingStatusResult.SwitchToArrive)
+        coVerify(exactly = 1) { repository.setCurrentMode(ModeState.Idle) }
+        coVerify(exactly = 1) { repository.setPreviousEta(0) }
     }
 
     @Test
-    fun `DRIVE to CANCEL when user leaves bus`() = runTest {
-        every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(busId))
+    fun `invoke in Drive mode returns SwitchToIdle when user is detected outside the bus`() = runTest {
+        every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(currentBusId))
+        every { repository.previousEta } returns MutableStateFlow(0)
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(originBusStopLocation)
 
         val result = useCase(
-            busLocation = farLocation,
-            seatAvailable = 5,
-            eta = 10
+            busLocation = awayFromBusStopLocation,
+            seatAvailable = seatAvailable,
+            eta = validEta
         )
 
-        assertEquals(CheckTrackingStatusResult.SwitchToIdle, result)
+        assertTrue(result is CheckTrackingStatusResult.SwitchToIdle)
+        coVerify(exactly = 0) { repository.setCurrentMode(any()) }
+        coVerify(exactly = 0) { repository.setPreviousEta(any()) }
     }
 
     @Test
-    fun `DRIVE to CONTINUE when still on trip`() = runTest {
-        every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(busId))
-        every { repository.destinationBusStopLocation } returns MutableStateFlow(farLocation)
+    fun `invoke in Drive mode returns Continue when bus has not arrived at destination and user is still on the bus`() = runTest {
+        every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(currentBusId))
+        every { repository.previousEta } returns MutableStateFlow(previousEta)
+        every { repository.destinationBusStopLocation } returns MutableStateFlow(destinationBusStopLocation)
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(awayFromBusStopLocation)
+        coEvery { repository.setPreviousEta(validEta) } just Runs
 
         val result = useCase(
-            busLocation = nearLocation,
-            seatAvailable = 5,
-            eta = 10
+            busLocation = awayFromBusStopLocation,
+            seatAvailable = seatAvailable,
+            eta = validEta
         )
 
-        assertEquals(CheckTrackingStatusResult.Continue, result)
-        verify { repository.setPreviousEta(10) }
+        assertTrue(result is CheckTrackingStatusResult.Continue)
+        coVerify(exactly = 1) { repository.setPreviousEta(validEta) }
+        coVerify(exactly = 0) { repository.setCurrentMode(any()) }
     }
 }

@@ -1,14 +1,12 @@
 import com.adrian.diptrack.domain.common.result.GetBusStopDetailResult
 import com.adrian.diptrack.domain.common.result.MapsPermissionResult
-import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.BusEta
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.repository.MainRepository
 import com.adrian.diptrack.domain.usecase.GetBusStopDetailUseCase
-import com.adrian.diptrack.domain.usecase.GetCurrentUserLocationUseCase
 import io.mockk.coEvery
-import io.mockk.every
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -18,88 +16,106 @@ import org.junit.Test
 
 class GetBusStopDetailUseCaseTest {
 
-    private val manager = mockk<MapsManager>()
-    private val repository = mockk<MainRepository>()
-    private val getCurrentUserLocationUseCase= mockk<GetCurrentUserLocationUseCase>()
-
+    private lateinit var repository: MainRepository
     private lateinit var useCase: GetBusStopDetailUseCase
 
-    private val userLocation = Coordinate(1.0, 1.0)
-    private val busStop = BusStop(1, "Halte A", 2.0, 2.0)
+    private val busStopId = 1
+    private val userLocation = Coordinate(-6.9932, 110.4203)
+    private val busStop = BusStop(
+        id = 1,
+        name = "Halte Widya Puraya",
+        latitude = -6.9945,
+        longitude = 110.4230
+    )
+    private val busStopLocation = Coordinate(busStop.latitude, busStop.longitude)
+    private val distanceKm = 0.35
+    private val busEtas = listOf(
+        BusEta(
+            busCode = "B1",
+            licensePlate = "1234",
+            etaMinutes = 3
+        ),
+        BusEta(
+            busCode = "B2",
+            licensePlate = "2345",
+            etaMinutes = 7
+        )
+    )
 
     @Before
-    fun setup() {
-        useCase = GetBusStopDetailUseCase(manager, repository, getCurrentUserLocationUseCase)
-
-        coEvery { getCurrentUserLocationUseCase() } returns MapsPermissionResult.Granted(userLocation)
+    fun setUp() {
+        repository = mockk()
+        useCase = GetBusStopDetailUseCase(repository)
     }
 
     @Test
-    fun `SUCCESS when bus stop data available`() = runTest {
-        val etas = listOf(BusEta("Bus 1", "123", 5), BusEta("Bus 2", "234", 10))
+    fun `invoke returns Success when bus stop data is available`() = runTest {
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getBusStopById(busStopId) } returns busStop
+        coEvery { repository.getBusEtaForBusStop(busStopId) } returns busEtas
+        coEvery { repository.calculateDistanceInKm(userLocation, busStopLocation) } returns distanceKm
 
-        coEvery { repository.getBusStopById(1) } returns busStop
-        coEvery { repository.getBusEtaForBusStop(1) } returns etas
-
-        every { manager.calculateDistanceInKm(any(), any()) } returns 3.5
-
-        val result = useCase(1)
-
+        val result = useCase(busStopId)
         assertTrue(result is GetBusStopDetailResult.Success)
 
-        val data = (result as GetBusStopDetailResult.Success).busStopDetail
-        assertEquals("Halte A", data.busStopName)
+        val success = result as GetBusStopDetailResult.Success
+        assertEquals("Halte Widya Puraya", success.busStopDetail.busStopName)
     }
 
     @Test
-    fun `FAIL when location permission denied`() = runTest {
-        coEvery { getCurrentUserLocationUseCase() } returns MapsPermissionResult.Denied
+    fun `invoke returns LocationPermissionDenied when location permission is denied`() = runTest {
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Denied
 
-        val result = useCase(1)
+        val result = useCase(busStopId)
+        assertTrue(result is GetBusStopDetailResult.LocationPermissionDenied)
 
-        assertEquals(GetBusStopDetailResult.LocationPermissionDenied, result)
+        coVerify(exactly = 0) { repository.getBusStopById(any()) }
+        coVerify(exactly = 0) { repository.getBusEtaForBusStop(any()) }
+        coVerify(exactly = 0) { repository.calculateDistanceInKm(any(), any()) }
     }
 
     @Test
-    fun `SUCCESS calculate distance correctly`() = runTest {
-        coEvery { repository.getBusStopById(1) } returns busStop
-        coEvery { repository.getBusEtaForBusStop(1) } returns emptyList()
+    fun `invoke returns correct distance from user location to bus stop`() = runTest {
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getBusStopById(busStopId) } returns busStop
+        coEvery { repository.getBusEtaForBusStop(busStopId) } returns busEtas
+        coEvery { repository.calculateDistanceInKm(userLocation, busStopLocation) } returns distanceKm
 
-        every {
-            manager.calculateDistanceInKm(userLocation, any())
-        } returns 7.2
+        val result = useCase(busStopId)
+        assertTrue(result is GetBusStopDetailResult.Success)
 
-        val result = useCase(1)
-
-        val data = (result as GetBusStopDetailResult.Success).busStopDetail
-        assertEquals(7.2, data.distanceKilometers, 0.0)
+        val success = result as GetBusStopDetailResult.Success
+        assertEquals(distanceKm, success.busStopDetail.distanceKilometers, 0.001)
     }
 
     @Test
-    fun `SUCCESS when bus ETA available`() = runTest {
-        val etas = listOf(BusEta("Bus 1", "123", 5), BusEta("Bus 2", "234", 10))
+    fun `invoke returns bus etas when there are active buses heading to bus stop`() = runTest {
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getBusStopById(busStopId) } returns busStop
+        coEvery { repository.getBusEtaForBusStop(busStopId) } returns busEtas
+        coEvery { repository.calculateDistanceInKm(userLocation, busStopLocation) } returns distanceKm
 
-        coEvery { repository.getBusStopById(1) } returns busStop
-        coEvery { repository.getBusEtaForBusStop(1) } returns etas
+        val result = useCase(busStopId)
+        assertTrue(result is GetBusStopDetailResult.Success)
 
-        every { manager.calculateDistanceInKm(any(), any()) } returns 2.0
-
-        val result = useCase(1)
-
-        val data = (result as GetBusStopDetailResult.Success).busStopDetail
-        assertEquals(etas, data.busEtas)
+        val success = result as GetBusStopDetailResult.Success
+        assertTrue(success.busStopDetail.busEtas.isNotEmpty())
+        assertEquals(2, success.busStopDetail.busEtas.size)
+        assertEquals(3, success.busStopDetail.busEtas[0].etaMinutes)
+        assertEquals(7, success.busStopDetail.busEtas[1].etaMinutes)
     }
 
     @Test
-    fun `SUCCESS when no bus ETA available`() = runTest {
-        coEvery { repository.getBusStopById(1) } returns busStop
-        coEvery { repository.getBusEtaForBusStop(1) } returns emptyList()
+    fun `invoke returns empty bus etas when no active buses heading to bus stop`() = runTest {
+        coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
+        coEvery { repository.getBusStopById(busStopId) } returns busStop
+        coEvery { repository.getBusEtaForBusStop(busStopId) } returns emptyList()
+        coEvery { repository.calculateDistanceInKm(userLocation, busStopLocation) } returns distanceKm
 
-        every { manager.calculateDistanceInKm(any(), any()) } returns 2.0
+        val result = useCase(busStopId)
+        assertTrue(result is GetBusStopDetailResult.Success)
 
-        val result = useCase(1)
-
-        val data = (result as GetBusStopDetailResult.Success).busStopDetail
-        assertTrue(data.busEtas.isEmpty())
+        val success = result as GetBusStopDetailResult.Success
+        assertTrue(success.busStopDetail.busEtas.isEmpty())
     }
 }

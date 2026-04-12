@@ -3,7 +3,6 @@ package com.adrian.diptrack.domain.usecase
 import com.adrian.diptrack.domain.common.ModeState
 import com.adrian.diptrack.domain.common.result.MapsPermissionResult
 import com.adrian.diptrack.domain.common.result.StartTrackingResult
-import com.adrian.diptrack.domain.manager.MapsManager
 import com.adrian.diptrack.domain.model.BusStop
 import com.adrian.diptrack.domain.model.Coordinate
 import com.adrian.diptrack.domain.model.StartTrackingSuccessData
@@ -17,9 +16,7 @@ import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
 
 class StartTrackingUseCase(
-    private val manager: MapsManager,
     private val repository: MainRepository,
-    private val getCurrentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase
 ) {
     @OptIn(FlowPreview::class)
@@ -28,7 +25,7 @@ class StartTrackingUseCase(
             return StartTrackingResult.ChangeDestinationRejected
         }
 
-        val userLocation = when (val result = getCurrentUserLocationUseCase()) {
+        val userLocation = when (val result = repository.getCurrentUserLocation()) {
             is MapsPermissionResult.Denied -> return StartTrackingResult.LocationPermissionDenied
             is MapsPermissionResult.Granted -> result.location
         }
@@ -49,7 +46,7 @@ class StartTrackingUseCase(
 
         val filteredIds = listOf(currentBusStopId, destinationBusStopId)
         val filteredStops = getFilteredBusStopsUseCase(filteredIds).filteredBusStops
-        val distance = manager.calculateDistanceInKm(originLocation, destinationLocation)
+        val distance = repository.calculateDistanceInKm(originLocation, destinationLocation)
 
         val busIds = withTimeoutOrNull(10.seconds) {
             repository.observeNearestAvailableBus(currentBusStopId)
@@ -105,14 +102,9 @@ class StartTrackingUseCase(
         destinationLocation: Coordinate,
         busStops: List<BusStop>
     ): BusStopSelection? {
-
-        val userCoordinate = Coordinate(userLocation.latitude, userLocation.longitude)
-
         val originBusStop = busStops.firstOrNull { busStop ->
-            val distance = manager.calculateHaversine(
-                startCoordinate = userCoordinate,
-                endCoordinate = Coordinate(busStop.latitude, busStop.longitude)
-            )
+            val busStopLocation = Coordinate(busStop.latitude, busStop.longitude)
+            val distance = repository.calculateHaversine(userLocation, busStopLocation)
             distance <= GEOFENCE_RADIUS_METERS
         }
 

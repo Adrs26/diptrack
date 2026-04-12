@@ -1,9 +1,7 @@
 package com.adrian.diptrack.domain.usecase
 
-import com.adrian.diptrack.domain.manager.MapsManager
+import com.adrian.diptrack.domain.repository.MainRepository
 
-class GetCurrentUserLocationUseCase(
-    private val manager: MapsManager
-) {
-    suspend operator fun invoke() = manager.getCurrentUserLocation()
+class GetCurrentUserLocationUseCase(private val repository: MainRepository) {
+    suspend operator fun invoke() = repository.getCurrentUserLocation()
 }
