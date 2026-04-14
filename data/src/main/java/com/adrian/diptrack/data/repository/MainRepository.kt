@@ -325,14 +325,22 @@ class MainRepository(
             is MapsPermissionResult.Granted -> result.location
         }
 
+        if (seatAvailable == 0) {
+            setCurrentMode(ModeState.Idle)
+            setPreviousEta(0)
+            return CheckTrackingStatusResult.BusFull
+        }
+
         when (currentMode.value) {
             is ModeState.Drive -> {
-                if (!userLocation.isNear(busLocation)) return CheckTrackingStatusResult.SwitchToIdle
+                if (!userLocation.isNear(busLocation)) {
+                    setCurrentMode(ModeState.Idle)
+                    setPreviousEta(0)
+                    return CheckTrackingStatusResult.SwitchToIdle
+                }
             }
             else -> Unit
         }
-
-        if (seatAvailable == 0) return CheckTrackingStatusResult.BusFull
 
         val isEtaBounce = eta.isBounce(previousEta.value)
         val isBusArrived = when (currentMode.value) {
