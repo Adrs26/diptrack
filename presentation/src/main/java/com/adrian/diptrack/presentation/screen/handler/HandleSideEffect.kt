@@ -37,7 +37,7 @@ fun HandleSideEffect(
         sideEffect.collect { sideEffect ->
             when (sideEffect) {
                 is MainSideEffect.AnimateCamera -> {
-                    cameraPositionState.animate(sideEffect.cameraUpdate, 1000)
+                    cameraPositionState.animate(sideEffect.cameraUpdate, 500)
                 }
                 is MainSideEffect.ShowLocationPermissionDeniedWarning -> {
                     context.showToast("Izinkan akses lokasi untuk menggunakan fitur pemantauan")

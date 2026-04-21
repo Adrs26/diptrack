@@ -70,7 +70,7 @@ class MainViewModel(
             is MainAction.OnRefresh -> triggerInitialData()
             is MainAction.OnBusStopClicked -> getBusStopDetail(action.busStopId)
             is MainAction.OnBusClicked -> getBusDetail(action.busId)
-            is MainAction.OnStartTracking -> startTracking(action.destLocation)
+            is MainAction.OnStartTracking -> startTracking(action.destinationLocation)
             is MainAction.OnCancelTracking -> cancelTracking()
         }
     }
@@ -133,7 +133,7 @@ class MainViewModel(
                             postSideEffect(MainSideEffect.ShowLocationPermissionDeniedWarning)
                         }
                         is CheckTrackingStatusResult.BusFull -> {
-                            startTrackingUseCase(getDestinationBusStopLocationUseCase())
+                            startTracking(getDestinationBusStopLocationUseCase())
                             postSideEffect(MainSideEffect.ShowBusFullWarning)
                         }
                         is CheckTrackingStatusResult.SwitchToIdle -> {

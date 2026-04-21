@@ -26,8 +26,7 @@ class CheckTrackingStatusUseCaseTest {
     private val awayFromBusStopLocation = Coordinate(-6.9800, 110.4100)
     private val currentBusId = 101
     private val seatAvailable = 10
-    private val validEta = 3
-    private val previousEta = 3
+    private val eta = 3
 
     @Before
     fun setUp() {
@@ -48,7 +47,7 @@ class CheckTrackingStatusUseCaseTest {
         val result = useCase(
             busLocation = originBusStopLocation,
             seatAvailable = seatAvailable,
-            eta = validEta
+            eta = eta
         )
 
         assertTrue(result is CheckTrackingStatusResult.SwitchToDrive)
@@ -60,35 +59,37 @@ class CheckTrackingStatusUseCaseTest {
     fun `invoke in Wait mode returns BusFull when seat available is zero`() = runTest {
         every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(currentBusId))
         every { repository.previousEta } returns MutableStateFlow(0)
+        every { repository.setCurrentMode(ModeState.Idle) } just Runs
+        every { repository.setPreviousEta(0) } just Runs
         coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(originBusStopLocation)
 
         val result = useCase(
             busLocation = awayFromBusStopLocation,
             seatAvailable = 0,
-            eta = validEta
+            eta = eta
         )
 
         assertTrue(result is CheckTrackingStatusResult.BusFull)
-        coVerify(exactly = 0) { repository.setCurrentMode(any()) }
-        coVerify(exactly = 0) { repository.setPreviousEta(any()) }
+        coVerify(exactly = 1) { repository.setCurrentMode(ModeState.Idle) }
+        coVerify(exactly = 1) { repository.setPreviousEta(0) }
     }
 
     @Test
     fun `invoke in Wait mode returns Continue when bus has not arrived at origin bus stop`() = runTest {
         every { repository.currentMode } returns MutableStateFlow(ModeState.Wait(currentBusId))
-        every { repository.previousEta } returns MutableStateFlow(previousEta)
+        every { repository.previousEta } returns MutableStateFlow(eta)
         every { repository.originBusStopLocation } returns MutableStateFlow(originBusStopLocation)
         coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(originBusStopLocation)
-        coEvery { repository.setPreviousEta(validEta) } just Runs
+        coEvery { repository.setPreviousEta(eta) } just Runs
 
         val result = useCase(
             busLocation = awayFromBusStopLocation,
             seatAvailable = seatAvailable,
-            eta = validEta
+            eta = eta
         )
 
         assertTrue(result is CheckTrackingStatusResult.Continue)
-        coVerify(exactly = 1) { repository.setPreviousEta(validEta) }
+        coVerify(exactly = 1) { repository.setPreviousEta(eta) }
         coVerify(exactly = 0) { repository.setCurrentMode(any()) }
     }
 
@@ -104,7 +105,7 @@ class CheckTrackingStatusUseCaseTest {
         val result = useCase(
             busLocation = destinationBusStopLocation,
             seatAvailable = seatAvailable,
-            eta = validEta
+            eta = eta
         )
 
         assertTrue(result is CheckTrackingStatusResult.SwitchToArrive)
@@ -116,35 +117,37 @@ class CheckTrackingStatusUseCaseTest {
     fun `invoke in Drive mode returns SwitchToIdle when user is detected outside the bus`() = runTest {
         every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(currentBusId))
         every { repository.previousEta } returns MutableStateFlow(0)
+        every { repository.setCurrentMode(ModeState.Idle) } just Runs
+        every { repository.setPreviousEta(0) } just Runs
         coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(originBusStopLocation)
 
         val result = useCase(
             busLocation = awayFromBusStopLocation,
             seatAvailable = seatAvailable,
-            eta = validEta
+            eta = eta
         )
 
         assertTrue(result is CheckTrackingStatusResult.SwitchToIdle)
-        coVerify(exactly = 0) { repository.setCurrentMode(any()) }
-        coVerify(exactly = 0) { repository.setPreviousEta(any()) }
+        coVerify(exactly = 1) { repository.setCurrentMode(ModeState.Idle) }
+        coVerify(exactly = 1) { repository.setPreviousEta(0) }
     }
 
     @Test
     fun `invoke in Drive mode returns Continue when bus has not arrived at destination and user is still on the bus`() = runTest {
         every { repository.currentMode } returns MutableStateFlow(ModeState.Drive(currentBusId))
-        every { repository.previousEta } returns MutableStateFlow(previousEta)
+        every { repository.previousEta } returns MutableStateFlow(eta)
         every { repository.destinationBusStopLocation } returns MutableStateFlow(destinationBusStopLocation)
         coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(awayFromBusStopLocation)
-        coEvery { repository.setPreviousEta(validEta) } just Runs
+        coEvery { repository.setPreviousEta(eta) } just Runs
 
         val result = useCase(
             busLocation = awayFromBusStopLocation,
             seatAvailable = seatAvailable,
-            eta = validEta
+            eta = eta
         )
 
         assertTrue(result is CheckTrackingStatusResult.Continue)
-        coVerify(exactly = 1) { repository.setPreviousEta(validEta) }
+        coVerify(exactly = 1) { repository.setPreviousEta(eta) }
         coVerify(exactly = 0) { repository.setCurrentMode(any()) }
     }
 }

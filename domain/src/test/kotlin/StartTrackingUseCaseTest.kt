@@ -27,7 +27,6 @@ class StartTrackingUseCaseTest {
     private lateinit var getFilteredBusStopsUseCase: GetFilteredBusStopsUseCase
     private lateinit var useCase: StartTrackingUseCase
 
-    private val userLocation = Coordinate(-6.9932, 110.4203)
     private val originBusStop = BusStop(
         id = 1,
         name = "Halte Widya Puraya",
@@ -40,17 +39,17 @@ class StartTrackingUseCaseTest {
         latitude = -6.9945,
         longitude = 110.4230
     )
-    private val destinationLocation = Coordinate(destinationBusStop.latitude, destinationBusStop.longitude)
-    private val sameBusStopLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
-    private val busStops = listOf(originBusStop, destinationBusStop)
-    private val filteredBusStops = listOf(originBusStop, destinationBusStop)
     private val staticData = StaticData(
-        busStops = busStops,
-        filteredBusStops = filteredBusStops,
+        busStops = listOf(originBusStop, destinationBusStop),
+        filteredBusStops = listOf(originBusStop, destinationBusStop),
         routes = emptyList(),
         error = null
     )
-    private val busIds = listOf(101)
+
+    private val userLocation = Coordinate(-6.9932, 110.4203)
+    private val originLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
+    private val destinationLocation = Coordinate(destinationBusStop.latitude, destinationBusStop.longitude)
+    private val busIds = listOf(101, 102)
     private val distanceKm = 1.2
     private val filteredIds = listOf(1, 2)
 
@@ -129,9 +128,9 @@ class StartTrackingUseCaseTest {
         coEvery { repository.setOriginBusStopId(originBusStop.id) } just Runs
         coEvery { repository.setOriginBusStopLocation(any()) } just Runs
         coEvery { repository.setDestinationBusStopId(originBusStop.id) } just Runs
-        coEvery { repository.setDestinationBusStopLocation(sameBusStopLocation) } just Runs
+        coEvery { repository.setDestinationBusStopLocation(originLocation) } just Runs
 
-        val result = useCase(sameBusStopLocation)
+        val result = useCase(originLocation)
         assertTrue(result is StartTrackingResult.SameBusStop)
 
         coVerify(exactly = 0) { getFilteredBusStopsUseCase(any()) }

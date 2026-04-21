@@ -14,14 +14,22 @@ class CheckTrackingStatusUseCase(private val repository: MainRepository) {
             is MapsPermissionResult.Granted -> result.location
         }
 
+        if (seatAvailable == 0) {
+            repository.setCurrentMode(ModeState.Idle)
+            repository.setPreviousEta(0)
+            return CheckTrackingStatusResult.BusFull
+        }
+
         when (repository.currentMode.value) {
             is ModeState.Drive -> {
-                if (!userLocation.isNear(busLocation)) return CheckTrackingStatusResult.SwitchToIdle
+                if (!userLocation.isNear(busLocation)) {
+                    repository.setCurrentMode(ModeState.Idle)
+                    repository.setPreviousEta(0)
+                    return CheckTrackingStatusResult.SwitchToIdle
+                }
             }
             else -> Unit
         }
-
-        if (seatAvailable == 0) return CheckTrackingStatusResult.BusFull
 
         val isEtaBounce = eta.isBounce(repository.previousEta.value)
         val isBusArrived = when (repository.currentMode.value) {

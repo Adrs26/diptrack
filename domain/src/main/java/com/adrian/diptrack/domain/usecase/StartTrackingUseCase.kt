@@ -66,11 +66,11 @@ class StartTrackingUseCase(
                     busId = busIds[0],
                     busStops = filteredStops,
                     originBusStopId = currentBusStopId,
-                    originBusStopName =
-                        filteredStops.firstOrNull { it.id == currentBusStopId }?.name.orEmpty(),
+                    originBusStopName = filteredStops
+                        .firstOrNull { it.id == currentBusStopId }?.name.orEmpty(),
                     destinationBusStopId = destinationBusStopId,
-                    destinationBusStopName =
-                        filteredStops.firstOrNull { it.id == destinationBusStopId }?.name.orEmpty(),
+                    destinationBusStopName = filteredStops
+                        .firstOrNull { it.id == destinationBusStopId }?.name.orEmpty(),
                     distance = distance
                 )
             )

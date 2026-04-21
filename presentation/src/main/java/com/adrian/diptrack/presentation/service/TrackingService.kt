@@ -114,8 +114,8 @@ class TrackingService : Service(), KoinComponent {
     override fun onBind(p0: Intent?): IBinder? = null
 
     companion object {
-        private const val NOTIFICATION_ID = 1
         const val NOTIFICATION_CHANNEL_ID = "tracking_channel"
+        private const val NOTIFICATION_ID = 1
         private const val NOTIFICATION_CHANNEL_NAME = "Tracking Channel"
     }
 }
