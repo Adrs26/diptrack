@@ -15,7 +15,7 @@ data class BusSocketResponse(
     @SerialName("longitude")
     val longitude: Double,
 
-    @SerialName("passenger_count")
+    @SerialName("penumpang")
     val passenger: Int,
 
     @SerialName("nama_halte_tujuan")

@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.adrian.diptrack.presentation.screen.MainScreen
 import com.adrian.diptrack.presentation.screen.MainViewModel
 import com.adrian.diptrack.presentation.service.TrackingService
@@ -19,6 +20,8 @@ class MainActivity : ComponentActivity() {
     private val viewModel by viewModel<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 

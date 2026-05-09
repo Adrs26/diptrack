@@ -66,8 +66,6 @@ class StartTrackingUseCaseTest {
 
     @Test
     fun `invoke returns Success when all conditions are met`() = runTest {
-        val originLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
-
         coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
         coEvery { repository.getStaticData() } returns staticData
         coEvery { repository.calculateHaversine(userLocation, originLocation) } returns 50f
@@ -120,8 +118,6 @@ class StartTrackingUseCaseTest {
 
     @Test
     fun `invoke returns SameBusStop when destination is the same as origin bus stop`() = runTest {
-        val originLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
-
         coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
         coEvery { repository.getStaticData() } returns staticData
         coEvery { repository.calculateHaversine(userLocation, originLocation) } returns 50f
@@ -139,8 +135,6 @@ class StartTrackingUseCaseTest {
 
     @Test
     fun `invoke returns NoAvailableBus when no active bus is available within timeout`() = runTest {
-        val originLocation = Coordinate(originBusStop.latitude, originBusStop.longitude)
-
         coEvery { repository.getCurrentUserLocation() } returns MapsPermissionResult.Granted(userLocation)
         coEvery { repository.getStaticData() } returns staticData
         coEvery { repository.calculateHaversine(userLocation, originLocation) } returns 50f

@@ -2,4 +2,11 @@
 <resources>
 
     <style name="Theme.DipTrack" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.App.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#F8FCFB</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <item name="postSplashScreenTheme">@style/Theme.DipTrack</item>
+    </style>
 </resources>
