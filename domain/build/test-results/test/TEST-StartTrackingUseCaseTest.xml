@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="StartTrackingUseCaseTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-05-09T05:11:39.440Z" hostname="ADVANAIGENULTRA" time="0.309">
+  <properties/>
+  <testcase name="invoke returns NoAvailableBus when no active bus is available within timeout" classname="StartTrackingUseCaseTest" time="0.176"/>
+  <testcase name="invoke returns LocationPermissionDenied when location permission is denied" classname="StartTrackingUseCaseTest" time="0.022"/>
+  <testcase name="invoke returns SameBusStop when destination is the same as origin bus stop" classname="StartTrackingUseCaseTest" time="0.026"/>
+  <testcase name="invoke returns Success when all conditions are met" classname="StartTrackingUseCaseTest" time="0.061"/>
+  <testcase name="invoke returns NotWithinBusStopRadius when user is not within any bus stop radius" classname="StartTrackingUseCaseTest" time="0.023"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

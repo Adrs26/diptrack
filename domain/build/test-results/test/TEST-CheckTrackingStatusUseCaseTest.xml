@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CheckTrackingStatusUseCaseTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-05-09T05:11:36.092Z" hostname="ADVANAIGENULTRA" time="2.701">
+  <properties/>
+  <testcase name="invoke in Wait mode returns SwitchToDrive when bus arrives at origin bus stop" classname="CheckTrackingStatusUseCaseTest" time="2.568"/>
+  <testcase name="invoke in Drive mode returns Continue when bus has not arrived at destination and user is still on the bus" classname="CheckTrackingStatusUseCaseTest" time="0.04"/>
+  <testcase name="invoke in Drive mode returns SwitchToArrive when bus arrives at destination bus stop" classname="CheckTrackingStatusUseCaseTest" time="0.022"/>
+  <testcase name="invoke in Drive mode returns SwitchToIdle when user is detected outside the bus" classname="CheckTrackingStatusUseCaseTest" time="0.019"/>
+  <testcase name="invoke in Wait mode returns Continue when bus has not arrived at origin bus stop" classname="CheckTrackingStatusUseCaseTest" time="0.021"/>
+  <testcase name="invoke in Wait mode returns BusFull when seat available is zero" classname="CheckTrackingStatusUseCaseTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (D:\Development\gradle-cache\caches\modules-2\files-2.1\net.bytebuddy\byte-buddy-agent\1.18.2\62f38a6faf7f069d661b79a07d566f504b0b20c4\byte-buddy-agent-1.18.2.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

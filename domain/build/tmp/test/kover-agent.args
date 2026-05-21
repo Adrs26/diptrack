@@ -1,0 +1,4 @@
+report.file=D:\Android\Project\Diptrack\domain\build\kover\bin-reports\test.ic
+exclude=android.*
+exclude=com.android.*
+exclude=jdk.internal.*

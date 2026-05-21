@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="GetBusStopDetailUseCaseTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-05-09T05:11:38.805Z" hostname="ADVANAIGENULTRA" time="0.623">
+  <properties/>
+  <testcase name="invoke returns empty bus etas when no active buses heading to bus stop" classname="GetBusStopDetailUseCaseTest" time="0.531"/>
+  <testcase name="invoke returns correct distance from user location to bus stop" classname="GetBusStopDetailUseCaseTest" time="0.028"/>
+  <testcase name="invoke returns LocationPermissionDenied when location permission is denied" classname="GetBusStopDetailUseCaseTest" time="0.023"/>
+  <testcase name="invoke returns Success when bus stop data is available" classname="GetBusStopDetailUseCaseTest" time="0.021"/>
+  <testcase name="invoke returns bus etas when there are active buses heading to bus stop" classname="GetBusStopDetailUseCaseTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
