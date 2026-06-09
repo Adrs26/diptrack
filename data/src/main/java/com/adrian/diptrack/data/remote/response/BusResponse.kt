@@ -1,28 +1,26 @@
 package com.adrian.diptrack.data.remote.response
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
-@Serializable
 data class BusResponse(
-    @SerialName("id_bus")
+   @SerializedName("id_bus")
     val id: Int,
 
-    @SerialName("plat_nomor")
+   @SerializedName("plat_nomor")
     val licensePlate: String,
 
-    @SerialName("kode_bus")
+   @SerializedName("kode_bus")
     val busCode: String,
 
-    @SerialName("jenis_bus")
+   @SerializedName("jenis_bus")
     val busType: String,
 
-    @SerialName("status")
+   @SerializedName("status")
     val status: String,
 
-    @SerialName("kapasitas")
+   @SerializedName("kapasitas")
     val capacity: Int,
 
-    @SerialName("nama_driver")
+   @SerializedName("nama_driver")
     val driver: String
 )

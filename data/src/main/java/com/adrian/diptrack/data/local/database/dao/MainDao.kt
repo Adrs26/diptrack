@@ -20,7 +20,7 @@ interface MainDao {
     @Query("SELECT * FROM bus_stop")
     suspend fun getBusStops(): List<BusStopEntity>
 
-    @Query("SELECT * FROM route")
+    @Query("SELECT * FROM route WHERE status = 'berjalan'")
     suspend fun getRoutes(): List<RouteEntity>
 
     @Transaction

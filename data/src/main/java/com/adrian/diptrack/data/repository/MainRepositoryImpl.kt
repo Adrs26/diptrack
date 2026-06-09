@@ -109,7 +109,7 @@ class MainRepositoryImpl(
         when {
             allSuccess -> {
                 val busStops = busStopResult.data
-                val routes = routeResult.data
+                val routes = routeResult.data.filter { it.status == "berjalan" }
                 val buses = busResult.data
 
                 localDataSource.syncInitialData(

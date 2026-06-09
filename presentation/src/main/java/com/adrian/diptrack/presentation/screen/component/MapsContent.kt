@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import com.adrian.diptrack.domain.model.BusLocation
 import com.adrian.diptrack.domain.model.BusStop
@@ -148,6 +149,7 @@ private fun BusLayer(
 
         Marker(
             state = markerState,
+            anchor = Offset(0.9f, 0.5f),
             icon = busIcon,
             flat = true,
             rotation = bearing,
