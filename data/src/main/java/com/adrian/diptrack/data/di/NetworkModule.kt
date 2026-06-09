@@ -1,5 +1,6 @@
 package com.adrian.diptrack.data.di
 
+import com.adrian.diptrack.data.remote.retrofit.ApiService
 import com.adrian.diptrack.data.remote.source.SocketManager
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -12,6 +13,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 val networkModule = module {
     single {
@@ -32,6 +35,13 @@ val networkModule = module {
                 url("http://145.79.15.182:5000/api/")
             }
         }
+    }
+    single {
+        Retrofit.Builder()
+            .baseUrl("http://145.79.15.182:5000/api/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
     }
     singleOf(::SocketManager)
 }

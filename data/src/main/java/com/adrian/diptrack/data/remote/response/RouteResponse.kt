@@ -1,16 +1,14 @@
 package com.adrian.diptrack.data.remote.response
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
-@Serializable
 data class RouteResponse(
-    @SerialName("id_jalur")
+    @SerializedName("id_jalur")
     val id: Int,
 
-    @SerialName("status")
+    @SerializedName("status")
     val status: String,
 
-    @SerialName("rute_polyline")
+    @SerializedName("rute_polyline")
     val polylineRoutes: String
 )

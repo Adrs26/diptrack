@@ -25,6 +25,7 @@ navigation = "2.9.8"
 orbit = "11.0.0"
 permissions = "0.37.3"
 playServicesLocation = "21.3.0"
+retrofit = "3.0.0"
 room = "2.8.4"
 
 [libraries]
@@ -69,6 +70,8 @@ orbit-mvi-compose = { module = "org.orbit-mvi:orbit-compose", version.ref = "orb
 orbit-mvi-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }
 orbit-mvi-viewmodel = { module = "org.orbit-mvi:orbit-viewmodel", version.ref = "orbit" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

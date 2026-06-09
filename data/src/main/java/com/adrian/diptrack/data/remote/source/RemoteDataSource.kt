@@ -4,27 +4,26 @@ import com.adrian.diptrack.data.remote.response.BusResponse
 import com.adrian.diptrack.data.remote.response.BusSocketResponse
 import com.adrian.diptrack.data.remote.response.BusStopResponse
 import com.adrian.diptrack.data.remote.response.RouteResponse
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
+import com.adrian.diptrack.data.remote.retrofit.ApiService
+import com.google.gson.JsonParseException
 import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.serialization.SerializationException
+import retrofit2.Response
 
 class RemoteDataSource(
-    private val client: HttpClient,
+//    private val client: HttpClient,
+    private val apiService: ApiService,
     private val socketManager: SocketManager
 ) {
 
     suspend fun getBusStops(): Result<List<BusStopResponse>, NetworkError> =
-        safeApiCall { client.get("halte") }
+        safeApiCall { apiService.getBusStops() }
 
     suspend fun getRoutes(): Result<List<RouteResponse>, NetworkError> =
-        safeApiCall { client.get("jalur") }
+        safeApiCall { apiService.getRoutes() }
 
     suspend fun getBuses(): Result<List<BusResponse>, NetworkError> =
-        safeApiCall { client.get("bus") }
+        safeApiCall { apiService.getBuses() }
 
     fun connectWebsocket() = socketManager.connect()
 
@@ -32,16 +31,48 @@ class RemoteDataSource(
 
     fun observeBusData(): SharedFlow<BusSocketResponse> = socketManager.messages
 
+//    private suspend inline fun <reified T> safeApiCall(
+//        crossinline apiCall: suspend () -> HttpResponse
+//    ): Result<T, NetworkErrorType> {
+//        return try {
+//            val response = apiCall()
+//
+//            when (response.status.value) {
+//                in HTTP_SUCCESS -> {
+//                    val body = response.body<T>()
+//                    Result.Success(body)
+//                }
+//                HTTP_UNAUTHORIZED -> Result.Error(NetworkErrorType.UNAUTHORIZED)
+//                HTTP_REQUEST_TIMEOUT -> Result.Error(NetworkErrorType.REQUEST_TIMEOUT)
+//                HTTP_CONFLICT -> Result.Error(NetworkErrorType.CONFLICT)
+//                HTTP_PAYLOAD_TOO_LARGE -> Result.Error(NetworkErrorType.PAYLOAD_TOO_LARGE)
+//                in HTTP_SERVER_ERROR -> Result.Error(NetworkErrorType.SERVER_ERROR)
+//                else -> Result.Error(NetworkErrorType.UNKNOWN)
+//            }
+//        } catch (_: SerializationException) {
+//            Result.Error(NetworkErrorType.SERIALIZATION)
+//        } catch (_: SocketTimeoutException) {
+//            Result.Error(NetworkErrorType.REQUEST_TIMEOUT)
+//        } catch (_: Exception) {
+//            Result.Error(NetworkErrorType.NO_INTERNET)
+//        }
+//    }
+
     private suspend inline fun <reified T> safeApiCall(
-        crossinline apiCall: suspend () -> HttpResponse
+        crossinline apiCall: suspend () -> Response<T>
     ): Result<T, NetworkErrorType> {
         return try {
             val response = apiCall()
 
-            when (response.status.value) {
+            when (response.code()) {
                 in HTTP_SUCCESS -> {
-                    val body = response.body<T>()
-                    Result.Success(body)
+                    val body = response.body()
+
+                    if (body != null) {
+                        Result.Success(body)
+                    } else {
+                        Result.Error(NetworkErrorType.SERIALIZATION)
+                    }
                 }
                 HTTP_UNAUTHORIZED -> Result.Error(NetworkErrorType.UNAUTHORIZED)
                 HTTP_REQUEST_TIMEOUT -> Result.Error(NetworkErrorType.REQUEST_TIMEOUT)
@@ -50,7 +81,7 @@ class RemoteDataSource(
                 in HTTP_SERVER_ERROR -> Result.Error(NetworkErrorType.SERVER_ERROR)
                 else -> Result.Error(NetworkErrorType.UNKNOWN)
             }
-        } catch (_: SerializationException) {
+        } catch (_: JsonParseException) {
             Result.Error(NetworkErrorType.SERIALIZATION)
         } catch (_: SocketTimeoutException) {
             Result.Error(NetworkErrorType.REQUEST_TIMEOUT)

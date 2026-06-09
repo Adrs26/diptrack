@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.adrian.diptrack.data"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
 
     defaultConfig {
@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.moko.socket.io)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     api(libs.play.services.location)
     api(libs.androidx.room.ktx)
     api(libs.androidx.room.runtime)
